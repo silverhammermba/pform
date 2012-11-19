@@ -8,6 +8,6 @@ class Block : public StaticEntity
 	sf::Sprite sprite;
 public:
 	Block(const sf::Texture & texture);
-}
+};
 
 #endif

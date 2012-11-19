@@ -1,5 +1,6 @@
 #include "pform.hpp"
 
-Block::Block() : StaticEntity(true)
+Block::Block(const sf::Texture & texture)
+	: StaticEntity(true), sprite(texture)
 {
 }

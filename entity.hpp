@@ -9,8 +9,10 @@ class Entity
 public:
 	Entity(bool s = true);
 
-	inline bool is_solid() const { return solid; };
-}
+	inline bool is_solid() const { return solid; }
+	inline unsigned int y_pos() const { return y; }
+	inline unsigned int x_pos() const { return x; }
+};
 
 class StaticEntity : public Entity
 {
