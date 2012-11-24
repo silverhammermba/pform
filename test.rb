@@ -23,17 +23,21 @@ class Player
 	end
 end
 
-w = 640
-h = 480
-window = RenderWindow.new([w, h], "Pform Ruby Test", Style::Titlebar)
-view = View.new([0, 0], [w / 4, h / 4])
-window.set_view view
+block_size = 16
+ppb = 4
 
-clock = Clock.new
+# 10 x 7 block window
+w = 10 * block_size * ppb
+h = 7 * block_size * ppb
+window = RenderWindow.new([w, h], "Pform Ruby Test", Style::Titlebar)
+# 4x zoom
+zoom = View.new([0, 0], [w / 4, h / 4])
+window.set_view zoom
 
 font = Font.new
 font.load_from_file("/usr/share/fonts/TTF/VeraMono.ttf")
 
+# for displaying fps
 fps_text = Text.new("", font, 12)
 fps_text.set_color(Color::Black)
 
@@ -45,6 +49,8 @@ brick.load_from_file("block.png")
 player = Player.new(dude)
 
 dy, dx = 0, 0
+
+clock = Clock.new
 
 while window.open?
 
@@ -93,14 +99,17 @@ while window.open?
 		player.move([dx * player.speed * time, dy * player.speed * time])
 	end
 
-
 	fps = 1 / time
 	fps_text.set_string fps.to_i.to_s
 
 	window.clear(Color::White)
 
 	window.draw(player.sprite)
+
+	# draw FPS at regular zoom
+	window.set_view(window.get_default_view)
 	window.draw(fps_text)
+	window.set_view(zoom)
 
 	window.display
 end
