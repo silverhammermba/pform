@@ -23,6 +23,7 @@ class Player
 	def initialize texture
 		@x = 0
 		@y = 0
+		find_relevant_region
 		@dx = 0
 		@dy = 0
 		# acceleration when key pressed
@@ -37,10 +38,14 @@ class Player
 	end
 
 	attr_accessor :dx, :dy
-	attr_reader :sprite, :speed
+	attr_reader :sprite, :speed, :minx, :miny, :maxx, :maxy
 
+	# find blocks overlapped by the player
 	def find_relevant_region
-
+		@minx = (@x / $block_size).floor
+		@maxx = (@x / $block_size).ceil
+		@miny = (@y / $block_size).floor
+		@maxy = (@y / $block_size).ceil
 	end
 
 	def step seconds
@@ -55,6 +60,7 @@ class Player
 			end
 		end
 		@x += @v * seconds
+		find_relevant_region if @v != 0
 		@sprite.set_position(@x.floor, @y.floor)
 	end
 end
@@ -80,6 +86,10 @@ dude.load_from_file("char.png")
 brick.load_from_file("block.png")
 
 player = Player.new(dude)
+
+green = Color.new(0, 255, 0, 127)
+debug = RectangleShape.new([$block_size, $block_size])
+debug.set_fill_color(green)
 
 gray = Color.new(80, 80, 80)
 clock = Clock.new
@@ -121,6 +131,13 @@ while window.open?
 	window.clear(gray)
 
 	window.draw(player.sprite)
+
+	for i in ((player.miny - 1)..(player.maxy + 1))
+		for j in ((player.minx - 1)..(player.maxx + 1))
+			debug.set_position(j * $block_size, i * $block_size)
+			window.draw(debug)
+		end
+	end
 
 	# draw FPS at regular zoom
 	window.set_view(window.get_default_view)
