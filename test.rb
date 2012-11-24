@@ -36,7 +36,7 @@ class Player
 		# top speed
 		@max = 50
 		# acceleration from gravity
-		@gravity = 10
+		@gravity = 300
 		# if the player is on the ground
 		@standing = false
 		# terminal velocity
@@ -48,6 +48,13 @@ class Player
 
 	attr_accessor :dx, :dy
 	attr_reader :sprite, :speed, :minx, :miny, :maxx, :maxy
+
+	def jump
+		if @standing
+			@vy = -100
+			@standing = false
+		end
+	end
 
 	# find blocks overlapped by the player
 	def find_relevant_region
@@ -84,18 +91,43 @@ class Player
 	# check the relevant region for collisions
 	def check_collision
 		collision = false
-		for i in ((@miny - 1)..(@maxy + 1))
-			for j in ((@minx - 1)..(@maxx + 1))
-				if block = @level[i][j]
-					if (block.x - @x).abs < $block_size and (block.y - @y).abs < $block_size
+		if @vy == 0
+			if @vx < 0
+				if block = @level[@miny][@minx - 1] or block = @level[@maxy][@minx - 1]
+					if @x - block.x < $block_size
 						collision = true
-						if @vx < 0
-							@x = (@x / $block_size).ceil * $block_size
-						else
-							@x = (@x / $block_size).floor * $block_size
+						@x = (@x / $block_size).ceil * $block_size
+					end
+				end
+			elsif @vx > 0
+				if block = @level[@miny][@maxx + 1] or block = @level[@maxy][@maxx + 1]
+					if block.x - @x < $block_size
+						collision = true
+						@x = (@x / $block_size).floor * $block_size
+					end
+				end
+			end
+		else
+			if @vx == 0
+				if @vy < 0
+					if block = @level[@miny - 1][@minx] or block = @level[@miny - 1][@maxx]
+						if @y - block.y < $block_size
+							collision = true
+							@y = (@y / $block_size).ceil * $block_size
+						end
+					end
+				elsif @vy > 0
+					if block = @level[@maxy + 1][@minx] or block = @level[@maxy + 1][@maxx]
+						if block.y - @y < $block_size
+							collision = true
+							@y = (@y / $block_size).floor * $block_size
+							@standing = true
+							@vy = 0
 						end
 					end
 				end
+			else
+				# TODO
 			end
 		end
 		# TODO possible infinite loop?
@@ -149,8 +181,8 @@ block(level, 0, 0)
 for i in (0...bw)
 	block(level, i, bh - 1)
 end
-block(level, 0, bh / 2)
-block(level, bw - 1, bh / 2)
+block(level, 0, bh / 2 + 1)
+block(level, bw - 1, bh / 2 + 1)
 
 player = Player.new(level, dude, bw / 2, bh / 2)
 
@@ -177,6 +209,8 @@ while window.open?
 				player.dx = -1
 			when Keyboard::Right
 				player.dx = 1
+			when Keyboard::Up
+				player.jump
 			end
 
 		when Event::KeyReleased
