@@ -20,10 +20,13 @@ def reduce y, x
 end
 
 class Player
-	def initialize texture, x, y
+	def initialize level, texture, x, y
+		@level = level
 		@x = x * $block_size
 		@y = y * $block_size
 		find_relevant_region
+		@sprite = Sprite.new(texture)
+		@sprite.set_position(@x.floor, @y.floor)
 		@dx = 0
 		@dy = 0
 		# acceleration when key pressed
@@ -34,7 +37,6 @@ class Player
 		@max = 50
 		# current velocity
 		@v = 0
-		@sprite = Sprite.new(texture)
 	end
 
 	attr_accessor :dx, :dy
@@ -48,6 +50,7 @@ class Player
 		@maxy = (@y / $block_size).ceil
 	end
 
+	# move the player
 	def step seconds
 		if @v != 0 and @dx * @v <= 0
 			@v = reduce(@v, @break * seconds)
@@ -60,14 +63,19 @@ class Player
 			end
 		end
 		@x += @v * seconds
-		find_relevant_region if @v != 0
+		if @v != 0
+			check_collision
+			find_relevant_region
+			@sprite.set_position(@x.floor, @y.floor)
+		end
 	end
 
-	def check_collision level
+	# check the relevant region for collisions
+	def check_collision
 		collision = false
 		for i in ((@miny - 1)..(@maxy + 1))
 			for j in ((@minx - 1)..(@maxx + 1))
-				if block = level[i][j]
+				if block = @level[i][j]
 					if (block.x - @x).abs < $block_size and (block.y - @y).abs < $block_size
 						collision = true
 						if @v < 0
@@ -80,8 +88,7 @@ class Player
 			end
 		end
 		# TODO possible infinite loop?
-		check_collision(level) if collision
-		@sprite.set_position(@x.floor, @y.floor)
+		check_collision if collision
 	end
 end
 
@@ -132,7 +139,7 @@ block(level, bw - 1, bh - 1)
 block(level, 0, bh / 2)
 block(level, bw - 1, bh / 2)
 
-player = Player.new(dude, bw / 2, bh / 2)
+player = Player.new(level, dude, bw / 2, bh / 2)
 
 green = Color.new(0, 255, 0, 127)
 debug = RectangleShape.new([$block_size, $block_size])
@@ -171,7 +178,6 @@ while window.open?
 	clock.restart
 
 	player.step(time)
-	player.check_collision(level)
 
 	fps = 1 / time
 	fps_text.set_string fps.to_i.to_s
