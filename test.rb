@@ -6,6 +6,10 @@ require 'sfml/graphics'
 
 include SFML
 
+$block_size = 16
+# zoom factor
+$zoom = 4
+
 def reduce y, x
 	if y > 0
 		y -= [x, y].min
@@ -36,6 +40,7 @@ class Player
 	attr_reader :sprite, :speed
 
 	def find_relevant_region
+
 	end
 
 	def step seconds
@@ -54,16 +59,13 @@ class Player
 	end
 end
 
-block_size = 16
-ppb = 4
-
 # 10 x 7 block window
-w = 10 * block_size * ppb
-h = 7 * block_size * ppb
+w = 10 * $block_size * $zoom
+h = 7 * $block_size * $zoom
 window = RenderWindow.new([w, h], "Pform Ruby Test", Style::Titlebar)
 # 4x zoom
-zoom = View.new([0, 0], [w / 4, h / 4])
-window.set_view zoom
+zoom_view = View.new([0, 0], [w / $zoom, h / $zoom])
+window.set_view zoom_view
 
 font = Font.new
 font.load_from_file("/usr/share/fonts/TTF/VeraMono.ttf")
@@ -123,7 +125,7 @@ while window.open?
 	# draw FPS at regular zoom
 	window.set_view(window.get_default_view)
 	window.draw(fps_text)
-	window.set_view(zoom)
+	window.set_view(zoom_view)
 
 	window.display
 end
