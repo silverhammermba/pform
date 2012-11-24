@@ -20,9 +20,9 @@ def reduce y, x
 end
 
 class Player
-	def initialize texture
-		@x = 0
-		@y = 0
+	def initialize texture, x, y
+		@x = x * $block_size
+		@y = y * $block_size
 		find_relevant_region
 		@dx = 0
 		@dy = 0
@@ -61,16 +61,50 @@ class Player
 		end
 		@x += @v * seconds
 		find_relevant_region if @v != 0
+	end
+
+	def check_collision level
+		collision = false
+		for i in ((@miny - 1)..(@maxy + 1))
+			for j in ((@minx - 1)..(@maxx + 1))
+				if block = level[i][j]
+					if (block.x - @x).abs < $block_size and (block.y - @y).abs < $block_size
+						collision = true
+						if @v < 0
+							@x = (@x / $block_size).ceil * $block_size
+						else
+							@x = (@x / $block_size).floor * $block_size
+						end
+					end
+				end
+			end
+		end
+		# TODO possible infinite loop?
+		check_collision(level) if collision
 		@sprite.set_position(@x.floor, @y.floor)
 	end
 end
 
+class Block
+	def initialize texture, x, y, solid = true
+		@sprite = Sprite.new(texture)
+		@x = x * $block_size
+		@y = y * $block_size
+		@sprite.set_position(@x, @y)
+		@solid = solid
+	end
+
+	attr_reader :sprite, :solid, :x, :y
+end
+
 # 10 x 7 block window
-w = 10 * $block_size * $zoom
-h = 7 * $block_size * $zoom
+bw = 10
+bh = 8
+w = bw * $block_size * $zoom
+h = bh * $block_size * $zoom
 window = RenderWindow.new([w, h], "Pform Ruby Test", Style::Titlebar)
 # 4x zoom
-zoom_view = View.new([0, 0], [w / $zoom, h / $zoom])
+zoom_view = View.new([bw * $block_size / 2, bh * $block_size / 2], [w / $zoom, h / $zoom])
 window.set_view zoom_view
 
 font = Font.new
@@ -80,12 +114,25 @@ font.load_from_file("/usr/share/fonts/TTF/VeraMono.ttf")
 fps_text = Text.new("", font, 12)
 fps_text.set_color(Color::Black)
 
+# load textures
 dude = Texture.new
-brick = Texture.new
+$brick = Texture.new
 dude.load_from_file("char.png")
-brick.load_from_file("block.png")
+$brick.load_from_file("block.png")
 
-player = Player.new(dude)
+# create level
+level = Array.new(bh) { |i| Array.new(bw) { |j| nil } }
+
+def block lvl, x, y
+	lvl[y][x] = Block.new($brick, x, y)
+end
+
+block(level, 0, 0)
+block(level, bw - 1, bh - 1)
+block(level, 0, bh / 2)
+block(level, bw - 1, bh / 2)
+
+player = Player.new(dude, bw / 2, bh / 2)
 
 green = Color.new(0, 255, 0, 127)
 debug = RectangleShape.new([$block_size, $block_size])
@@ -124,12 +171,14 @@ while window.open?
 	clock.restart
 
 	player.step(time)
+	player.check_collision(level)
 
 	fps = 1 / time
 	fps_text.set_string fps.to_i.to_s
 
 	window.clear(gray)
 
+	level.each { |row| row.each { |block| window.draw(block.sprite) if block } }
 	window.draw(player.sprite)
 
 	for i in ((player.miny - 1)..(player.maxy + 1))
