@@ -6,19 +6,50 @@ require 'sfml/graphics'
 
 include SFML
 
+def reduce y, x
+	if y > 0
+		y -= [x, y].min
+	elsif y < 0
+		y += [x, -y].min
+	end
+	y
+end
+
 class Player
 	def initialize texture
 		@x = 0
 		@y = 0
+		@dx = 0
+		@dy = 0
+		# acceleration when key pressed
+		@accel = 200
+		# break speed when idle
+		@break = 400
+		# top speed
+		@max = 50
+		# current velocity
+		@v = 0
 		@sprite = Sprite.new(texture)
-		@speed = 100
 	end
 
+	attr_accessor :dx, :dy
 	attr_reader :sprite, :speed
 
-	def move v
-		@x += v[0]
-		@y += v[1]
+	def find_relevant_region
+	end
+
+	def step seconds
+		if @v != 0 and @dx * @v <= 0
+			@v = reduce(@v, @break * seconds)
+		else # @v == 0 or @dx * @v > 0
+			@v += @dx * @accel * seconds
+			if @v > @max
+				@v = @max
+			elsif @v < -@max
+				@v = -@max
+			end
+		end
+		@x += @v * seconds
 		@sprite.set_position(@x.floor, @y.floor)
 	end
 end
@@ -48,8 +79,7 @@ brick.load_from_file("block.png")
 
 player = Player.new(dude)
 
-dy, dx = 0, 0
-
+gray = Color.new(80, 80, 80)
 clock = Clock.new
 
 while window.open?
@@ -63,25 +93,17 @@ while window.open?
 			when Keyboard::Escape
 				window.close
 			when Keyboard::Left
-				dx = -1
+				player.dx = -1
 			when Keyboard::Right
-				dx = 1
-			when Keyboard::Up
-				dy = -1
-			when Keyboard::Down
-				dy = 1
+				player.dx = 1
 			end
 
 		when Event::KeyReleased
 			case event.key.code
 			when Keyboard::Left
-				dx = 0
+				player.dx = 0
 			when Keyboard::Right
-				dx = 0
-			when Keyboard::Up
-				dy = 0
-			when Keyboard::Down
-				dy = 0
+				player.dx = 0
 			end
 		end
 	end
@@ -89,20 +111,12 @@ while window.open?
 	time = clock.time.as_seconds
 	clock.restart
 
-	# normalize movement
-	magnitude = Math::sqrt(dx ** 2 + dy ** 2)
-
-	if magnitude != 0
-		dx /= magnitude
-		dy /= magnitude
-
-		player.move([dx * player.speed * time, dy * player.speed * time])
-	end
+	player.step(time)
 
 	fps = 1 / time
 	fps_text.set_string fps.to_i.to_s
 
-	window.clear(Color::White)
+	window.clear(gray)
 
 	window.draw(player.sprite)
 
