@@ -35,8 +35,15 @@ class Player
 		@break = 400
 		# top speed
 		@max = 50
+		# acceleration from gravity
+		@gravity = 10
+		# if the player is on the ground
+		@standing = false
+		# terminal velocity
+		@tv = 100
 		# current velocity
-		@v = 0
+		@vx = 0
+		@vy = 0
 	end
 
 	attr_accessor :dx, :dy
@@ -52,18 +59,22 @@ class Player
 
 	# move the player
 	def step seconds
-		if @v != 0 and @dx * @v <= 0
-			@v = reduce(@v, @break * seconds)
-		else # @v == 0 or @dx * @v > 0
-			@v += @dx * @accel * seconds
-			if @v > @max
-				@v = @max
-			elsif @v < -@max
-				@v = -@max
+		if @vx != 0 and @dx * @vx <= 0
+			@vx = reduce(@vx, @break * seconds)
+		else # @vx == 0 or @dx * @vx > 0
+			@vx += @dx * @accel * seconds
+			if @vx > @max
+				@vx = @max
+			elsif @vx < -@max
+				@vx = -@max
 			end
 		end
-		@x += @v * seconds
-		if @v != 0
+		if not @standing
+			@vy += @gravity * seconds
+		end
+		@x += @vx * seconds
+		@y += @vy * seconds
+		if @vx != 0 or @vy != 0
 			check_collision
 			find_relevant_region
 			@sprite.set_position(@x.floor, @y.floor)
@@ -78,7 +89,7 @@ class Player
 				if block = @level[i][j]
 					if (block.x - @x).abs < $block_size and (block.y - @y).abs < $block_size
 						collision = true
-						if @v < 0
+						if @vx < 0
 							@x = (@x / $block_size).ceil * $block_size
 						else
 							@x = (@x / $block_size).floor * $block_size
@@ -135,7 +146,9 @@ def block lvl, x, y
 end
 
 block(level, 0, 0)
-block(level, bw - 1, bh - 1)
+for i in (0...bw)
+	block(level, i, bh - 1)
+end
 block(level, 0, bh / 2)
 block(level, bw - 1, bh / 2)
 
@@ -146,8 +159,10 @@ debug = RectangleShape.new([$block_size, $block_size])
 debug.set_fill_color(green)
 
 gray = Color.new(80, 80, 80)
+
 clock = Clock.new
 
+# game loop
 while window.open?
 
 	window.each_event do |event|
