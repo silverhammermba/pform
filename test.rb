@@ -10,6 +10,17 @@ $block_size = 16
 # zoom factor
 $zoom = 4
 
+class Numeric
+	def sign
+		if self > 0
+			return 1
+		elsif self < 0
+			return -1
+		end
+		return 0
+	end
+end
+
 def reduce y, x
 	if y > 0
 		y -= [x, y].min
@@ -27,6 +38,8 @@ class Player
 		find_relevant_region
 		@sprite = Sprite.new(texture)
 		@sprite.set_position(@x.floor, @y.floor)
+		# x direction from keyboard
+		@dir = 0
 		@dx = 0
 		@dy = 0
 		# acceleration when key pressed
@@ -36,7 +49,7 @@ class Player
 		# top speed
 		@max = 50
 		# acceleration from gravity
-		@gravity = 300
+		@gravity = 0
 		# if the player is on the ground
 		@standing = false
 		# terminal velocity
@@ -46,7 +59,7 @@ class Player
 		@vy = 0
 	end
 
-	attr_accessor :dx, :dy
+	attr_accessor :dir
 	attr_reader :sprite, :speed, :minx, :miny, :maxx, :maxy
 
 	def jump
@@ -66,10 +79,10 @@ class Player
 
 	# move the player
 	def step seconds
-		if @vx != 0 and @dx * @vx <= 0
+		if @vx != 0 and @dir * @vx <= 0
 			@vx = reduce(@vx, @break * seconds)
-		else # @vx == 0 or @dx * @vx > 0
-			@vx += @dx * @accel * seconds
+		else # @vx == 0 or @dir * @vx > 0
+			@vx += @dir * @accel * seconds
 			if @vx > @max
 				@vx = @max
 			elsif @vx < -@max
@@ -79,59 +92,65 @@ class Player
 		if not @standing
 			@vy += @gravity * seconds
 		end
-		@x += @vx * seconds
-		@y += @vy * seconds
-		if @vx != 0 or @vy != 0
-			check_collision
+		@dx = @vx * seconds
+		@dy = @vy * seconds
+		if @dx != 0 or @dy != 0
+			resolve_movement
 			find_relevant_region
 			@sprite.set_position(@x.floor, @y.floor)
 		end
 	end
 
-	# check the relevant region for collisions
-	def check_collision
-		collision = false
-		if @vy == 0
-			if @vx < 0
-				if block = @level[@miny][@minx - 1] or block = @level[@maxy][@minx - 1]
-					if @x - block.x < $block_size
-						collision = true
-						@x = (@x / $block_size).ceil * $block_size
+	# avoid overlaps with nearby blocks
+	def resolve_movement
+		# purely horizontal movement
+		if @dy == 0
+			nextmin = ((@x + @dx) / $block_size).floor
+			nextmax = ((@x + @dx) / $block_size).ceil
+			# if you are moving into a new block
+			if nextmin != @minx or nextmax != @maxx
+				if @dx > 0
+					if @level[@miny][nextmax] or @level[@maxy][nextmax]
+						@x = nextmin * $block_size
+					else
+						@x += @dx
 					end
-				end
-			elsif @vx > 0
-				if block = @level[@miny][@maxx + 1] or block = @level[@maxy][@maxx + 1]
-					if block.x - @x < $block_size
-						collision = true
-						@x = (@x / $block_size).floor * $block_size
-					end
-				end
-			end
-		else
-			if @vx == 0
-				if @vy < 0
-					if block = @level[@miny - 1][@minx] or block = @level[@miny - 1][@maxx]
-						if @y - block.y < $block_size
-							collision = true
-							@y = (@y / $block_size).ceil * $block_size
-						end
-					end
-				elsif @vy > 0
-					if block = @level[@maxy + 1][@minx] or block = @level[@maxy + 1][@maxx]
-						if block.y - @y < $block_size
-							collision = true
-							@y = (@y / $block_size).floor * $block_size
-							@standing = true
-							@vy = 0
-						end
+				else # @dx < 0
+					if @level[@miny][nextmin] or @level[@maxy][nextmin]
+						@x = nextmax * $block_size
+					else
+						@x += @dx
 					end
 				end
 			else
-				# TODO
+				@x += @dx
+			end
+		# TODO copy x case
+		# purely vertical movement
+		elsif @dx == 0
+			# moving down
+			if @dy > 0
+				if @level[@maxy + 1][@minx] or @level[@maxy + 1][@maxx]
+					@y = (@y / $block_size).ceil * $block_size
+				else
+					@y += @dy
+				end
+			# moving up
+			else # @dy < 0
+				if @level[@miny - 1][@minx] or @level[@miny - 1][@maxx]
+					@y = (@y / $block_size).floor * $block_size
+				else
+					@y += @dy
+				end
+			end
+		else # @dx != 0 and @dy != 0
+			if @dx < 0
+			else # @dx > 0
 			end
 		end
+		collision = false
 		# TODO possible infinite loop?
-		check_collision if collision
+		resolve_movement if collision
 	end
 end
 
@@ -184,7 +203,7 @@ end
 block(level, 0, bh / 2 + 1)
 block(level, bw - 1, bh / 2 + 1)
 
-player = Player.new(level, dude, bw / 2, bh / 2)
+player = Player.new(level, dude, bw - 2, bh / 2 + 1)
 
 green = Color.new(0, 255, 0, 127)
 debug = RectangleShape.new([$block_size, $block_size])
@@ -206,9 +225,9 @@ while window.open?
 			when Keyboard::Escape
 				window.close
 			when Keyboard::Left
-				player.dx = -1
+				player.dir = -1
 			when Keyboard::Right
-				player.dx = 1
+				player.dir = 1
 			when Keyboard::Up
 				player.jump
 			end
@@ -216,9 +235,9 @@ while window.open?
 		when Event::KeyReleased
 			case event.key.code
 			when Keyboard::Left
-				player.dx = 0
+				player.dir = 0
 			when Keyboard::Right
-				player.dx = 0
+				player.dir = 0
 			end
 		end
 	end
@@ -236,8 +255,8 @@ while window.open?
 	level.each { |row| row.each { |block| window.draw(block.sprite) if block } }
 	window.draw(player.sprite)
 
-	for i in ((player.miny - 1)..(player.maxy + 1))
-		for j in ((player.minx - 1)..(player.maxx + 1))
+	for i in ((player.miny)..(player.maxy))
+		for j in ((player.minx)..(player.maxx))
 			debug.set_position(j * $block_size, i * $block_size)
 			window.draw(debug)
 		end
