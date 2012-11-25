@@ -49,7 +49,7 @@ class Player
 		# top speed
 		@max = 50
 		# acceleration from gravity
-		@gravity = 0
+		@gravity = 100
 		# if the player is on the ground
 		@standing = false
 		# terminal velocity
@@ -128,29 +128,33 @@ class Player
 		# TODO copy x case
 		# purely vertical movement
 		elsif @dx == 0
-			# moving down
-			if @dy > 0
-				if @level[@maxy + 1][@minx] or @level[@maxy + 1][@maxx]
-					@y = (@y / $block_size).ceil * $block_size
-				else
-					@y += @dy
+			nextmin = ((@y + @dy) / $block_size).floor
+			nextmax = ((@y + @dy) / $block_size).ceil
+			# if you are moving into a new block
+			if nextmin != @miny or nextmax != @maxy
+				if @dy > 0
+					if @level[nextmax][@minx] or @level[nextmax][@maxx]
+						@y = nextmin * $block_size
+						@standing = true
+						@vy = 0
+					else
+						@y += @dy
+					end
+				else # @dy < 0
+					if @level[nextmin][@minx] or @level[nextmin][@maxx]
+						@y = nextmax * $block_size
+						@vy = 0
+					else
+						@y += @dy
+					end
 				end
-			# moving up
-			else # @dy < 0
-				if @level[@miny - 1][@minx] or @level[@miny - 1][@maxx]
-					@y = (@y / $block_size).floor * $block_size
-				else
-					@y += @dy
-				end
+			else
+				@y += @dy
 			end
 		else # @dx != 0 and @dy != 0
-			if @dx < 0
-			else # @dx > 0
-			end
+			@x += @dx
+			@y += @dy
 		end
-		collision = false
-		# TODO possible infinite loop?
-		resolve_movement if collision
 	end
 end
 
@@ -200,8 +204,10 @@ block(level, 0, 0)
 for i in (0...bw)
 	block(level, i, bh - 1)
 end
-block(level, 0, bh / 2 + 1)
-block(level, bw - 1, bh / 2 + 1)
+block(level, 0, 5)
+block(level, bw - 1, 5)
+block(level, 0, 6)
+block(level, bw - 1, 6)
 
 player = Player.new(level, dude, bw - 2, bh / 2 + 1)
 
