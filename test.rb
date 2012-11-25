@@ -43,13 +43,13 @@ class Player
 		@dx = 0
 		@dy = 0
 		# acceleration when key pressed
-		@accel = 200
+		@accel = 300
 		# break speed when idle
-		@break = 400
+		@break = @accel * 2
 		# top speed
-		@max = 50
+		@max = 75
 		# acceleration from gravity
-		@gravity = 100
+		@gravity = 800
 		# if the player is on the ground
 		@standing = false
 		# terminal velocity
@@ -64,7 +64,7 @@ class Player
 
 	def jump
 		if @standing
-			@vy = -100
+			@vy = -250
 			@standing = false
 		end
 	end
@@ -103,55 +103,52 @@ class Player
 
 	# avoid overlaps with nearby blocks
 	def resolve_movement
+		nextminx = ((@x + @dx) / $block_size).floor
+		nextminy = ((@y + @dy) / $block_size).floor
+		nextmaxx = ((@x + @dx) / $block_size).ceil
+		nextmaxy = ((@y + @dy) / $block_size).ceil
 		# purely horizontal movement
 		if @dy == 0
-			nextmin = ((@x + @dx) / $block_size).floor
-			nextmax = ((@x + @dx) / $block_size).ceil
-			# if you are moving into a new block
-			if nextmin != @minx or nextmax != @maxx
-				if @dx > 0
-					if @level[@miny][nextmax] or @level[@maxy][nextmax]
-						@x = nextmin * $block_size
-					else
-						@x += @dx
-					end
-				else # @dx < 0
-					if @level[@miny][nextmin] or @level[@maxy][nextmin]
-						@x = nextmax * $block_size
-					else
-						@x += @dx
-					end
+			# moving right
+			if @dx > 0 and nextmaxx != @maxx
+				if @level[@miny][nextmaxx] or @level[@maxy][nextmaxx]
+					@x = nextminx * $block_size
+				else
+					@x += @dx
+				end
+			# moving left
+			elsif @dx < 0 and nextminx != @minx
+				if @level[@miny][nextminx] or @level[@maxy][nextminx]
+					@x = nextmaxx * $block_size
+				else
+					@x += @dx
 				end
 			else
 				@x += @dx
 			end
-		# TODO copy x case
 		# purely vertical movement
 		elsif @dx == 0
-			nextmin = ((@y + @dy) / $block_size).floor
-			nextmax = ((@y + @dy) / $block_size).ceil
 			# if you are moving into a new block
-			if nextmin != @miny or nextmax != @maxy
-				if @dy > 0
-					if @level[nextmax][@minx] or @level[nextmax][@maxx]
-						@y = nextmin * $block_size
-						@standing = true
-						@vy = 0
-					else
-						@y += @dy
-					end
-				else # @dy < 0
-					if @level[nextmin][@minx] or @level[nextmin][@maxx]
-						@y = nextmax * $block_size
-						@vy = 0
-					else
-						@y += @dy
-					end
+			if @dy > 0 and nextmaxy != @maxy
+				if @level[nextmaxy][@minx] or @level[nextmaxy][@maxx]
+					@y = nextminy * $block_size
+					@standing = true
+					@vy = 0
+				else
+					@y += @dy
+				end
+			elsif @dy < 0 and nextminy != @miny
+				if @level[nextminy][@minx] or @level[nextminy][@maxx]
+					@y = nextmaxy * $block_size
+					@vy = 0
+				else
+					@y += @dy
 				end
 			else
 				@y += @dy
 			end
 		else # @dx != 0 and @dy != 0
+			# TODO
 			@x += @dx
 			@y += @dy
 		end
@@ -200,7 +197,7 @@ def block lvl, x, y
 	lvl[y][x] = Block.new($brick, x, y)
 end
 
-block(level, 0, 0)
+block(level, 0, 1)
 for i in (0...bw)
 	block(level, i, bh - 1)
 end
