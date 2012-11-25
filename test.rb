@@ -109,25 +109,35 @@ class Player
 		nextmaxy = ((@y + @dy) / $block_size).ceil
 		# purely horizontal movement
 		if @dy == 0
-			# moving right
-			if @dx > 0 and nextmaxx != @maxx
-				if @level[@miny][nextmaxx] or @level[@maxy][nextmaxx]
-					@x = nextminx * $block_size
-				else
-					@x += @dx
-				end
-			# moving left
-			elsif @dx < 0 and nextminx != @minx
-				if @level[@miny][nextminx] or @level[@maxy][nextminx]
-					@x = nextmaxx * $block_size
+			if nextmaxx != @maxx or nextminx != @minx
+				# moving right
+				if @dx > 0
+					if @level[@miny][nextmaxx] or @level[@maxy][nextmaxx]
+						@x = nextminx * $block_size
+					elsif @standing and nextminx != @minx and @level[@miny + 1][nextminx].nil?
+						@x = nextminx * $block_size
+						@standing = false
+					else
+						@x += @dx
+					end
+				# moving left
+				elsif @dx < 0
+					if @level[@miny][nextminx] or @level[@maxy][nextminx]
+						@x = nextmaxx * $block_size
+					elsif @standing and nextmaxx != @maxx and @level[@miny + 1][nextmaxx].nil?
+						@x = nextmaxx * $block_size
+						@standing = false
+					else
+						@x += @dx
+					end
 				else
 					@x += @dx
 				end
 			else
 				@x += @dx
 			end
-		# purely vertical movement
-		elsif @dx == 0
+		# purely vertical movement and hack
+		else
 			# if you are moving into a new block
 			if @dy > 0 and nextmaxy != @maxy
 				if @level[nextmaxy][@minx] or @level[nextmaxy][@maxx]
@@ -147,10 +157,10 @@ class Player
 			else
 				@y += @dy
 			end
-		else # @dx != 0 and @dy != 0
-			# TODO
-			@x += @dx
-			@y += @dy
+			if @dx != 0
+				@dy = 0
+				resolve_movement
+			end
 		end
 	end
 end
@@ -202,6 +212,9 @@ for i in (0...bw)
 	block(level, i, bh - 1)
 end
 block(level, 0, 5)
+block(level, 1, 5)
+block(level, 1, 3)
+block(level, 1, 6)
 block(level, bw - 1, 5)
 block(level, 0, 6)
 block(level, bw - 1, 6)
