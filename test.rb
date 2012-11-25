@@ -215,9 +215,11 @@ block(level, 0, 5)
 block(level, 1, 5)
 block(level, 1, 3)
 block(level, 1, 6)
-block(level, bw - 1, 5)
 block(level, 0, 6)
-block(level, bw - 1, 6)
+block(level, 7, 5)
+block(level, 7, 6)
+block(level, 9, 5)
+block(level, 9, 6)
 
 player = Player.new(level, dude, bw - 2, bh / 2 + 1)
 
