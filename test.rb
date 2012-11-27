@@ -64,6 +64,7 @@ class Player
 
 	def jump
 		if @standing
+			@x = @x.round # to allow jumping through narrow gaps
 			@vy = -250
 			@standing = false
 		end
@@ -97,70 +98,89 @@ class Player
 		if @dx != 0 or @dy != 0
 			resolve_movement
 			find_relevant_region
-			@sprite.set_position(@x.floor, @y.floor)
+			@sprite.set_position(@x, @y)
 		end
 	end
 
-	# avoid overlaps with nearby blocks
+	def stand!
+		@standing = true
+		@vy = 0
+	end
+
+	def fall!
+		@standing = false
+	end
+
+	def align_x!
+		@x = (@x / $block_size).round * $block_size
+	end
+
+	def x_aligned?
+		@x % $block_size == 0
+	end
+
+	def align_y!
+		@y = (@y / $block_size).round * $block_size
+	end
+
+	def y_aligned?
+		@y % $block_size == 0
+	end
+
 	def resolve_movement
-		nextminx = ((@x + @dx) / $block_size).floor
-		nextminy = ((@y + @dy) / $block_size).floor
-		nextmaxx = ((@x + @dx) / $block_size).ceil
-		nextmaxy = ((@y + @dy) / $block_size).ceil
-		# purely horizontal movement
-		if @dy == 0
-			if nextmaxx != @maxx or nextminx != @minx
-				# moving right
-				if @dx > 0
-					if @level[@miny][nextmaxx] or @level[@maxy][nextmaxx]
-						@x = nextminx * $block_size
-					elsif @standing and nextminx != @minx and @level[@miny + 1][nextminx].nil?
-						@x = nextminx * $block_size
-						@standing = false
-					else
+		if @dx != 0 and @dy == 0
+			minmax = (@dx > 0 ? @maxx : @minx)
+			mod = (@dx > 0 ? 1 : -1)
+			if x_aligned?
+				# fall if shouldn't be standing
+				if @standing and @level[@maxy + 1][@minx].nil?
+					fall!
+					# TODO fall a little?
+					return
+				else
+					unless @level[@miny][minmax + mod] or @level[@maxy][minmax + mod]
 						@x += @dx
+						return
 					end
-				# moving left
-				elsif @dx < 0
-					if @level[@miny][nextminx] or @level[@maxy][nextminx]
-						@x = nextmaxx * $block_size
-					elsif @standing and nextmaxx != @maxx and @level[@miny + 1][nextmaxx].nil?
-						@x = nextmaxx * $block_size
-						@standing = false
-					else
-						@x += @dx
-					end
+				end
+			else
+				if (@x + @dx) * @dx > minmax * $block_size * @dx
+					x = @x
+					@x = minmax * $block_size
+					@dx -= @x - x
+					resolve_movement
 				else
 					@x += @dx
 				end
-			else
-				@x += @dx
+				return
 			end
-		# purely vertical movement and hack
-		else
-			# if you are moving into a new block
-			if @dy > 0 and nextmaxy != @maxy
-				if @level[nextmaxy][@minx] or @level[nextmaxy][@maxx]
-					@y = nextminy * $block_size
-					@standing = true
-					@vy = 0
+		elsif @dx == 0 and @dy != 0
+			minmax = (@dy > 0 ? @maxy : @miny)
+			mod = (@dy > 0 ? 1 : -1)
+			if y_aligned?
+				# fall if shouldn't be standing
+				if not @standing and @level[@maxy + 1][@minx]
+					stand!
+					return
+				else
+					unless @level[minmax + mod][@minx] or @level[minmax + mod][@maxx]
+						@y += @dy
+						return
+					end
+				end
+			else
+				if (@y + @dy) * @dy > minmax * $block_size * @dy
+					y = @y
+					@y = minmax * $block_size
+					@dy -= @y - y
+					resolve_movement
 				else
 					@y += @dy
 				end
-			elsif @dy < 0 and nextminy != @miny
-				if @level[nextminy][@minx] or @level[nextminy][@maxx]
-					@y = nextmaxy * $block_size
-					@vy = 0
-				else
-					@y += @dy
-				end
-			else
-				@y += @dy
+				return
 			end
-			if @dx != 0
-				@dy = 0
-				resolve_movement
-			end
+		else # @dx != 0 and @dy != 0
+			# TODO FUCKING SHIT
 		end
 	end
 end
@@ -221,7 +241,7 @@ block(level, 7, 6)
 block(level, 9, 5)
 block(level, 9, 6)
 
-player = Player.new(level, dude, bw - 2, bh / 2 + 1)
+player = Player.new(level, dude, 7, 4)
 
 green = Color.new(0, 255, 0, 127)
 debug = RectangleShape.new([$block_size, $block_size])
@@ -248,6 +268,8 @@ while window.open?
 				player.dir = 1
 			when Keyboard::Up
 				player.jump
+			when Keyboard::R
+				player = Player.new(level, dude, 7, 4)
 			end
 
 		when Event::KeyReleased
