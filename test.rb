@@ -67,7 +67,7 @@ class Player
 	end
 
 	attr_accessor :dir
-	attr_reader :sprite, :limit
+	attr_reader :sprite, :limit, :cross
 
 	def jump
 		if @standing
@@ -114,6 +114,36 @@ class Player
 
 	def fall!
 		@standing = false
+	end
+
+	# currently, calculate array of horizontal/vertical grid crossings from @pos to pos
+	def move_to pos
+		# convert pos to @diff (this won't be necessary when doing it for real)
+		@diff = pos.map.with_index { |p, i| p - @pos[i] }
+		# this multiplier accounts for @diffs being negative
+		mult = @diff.map(&:sign)
+		# where we store the crossings
+		@cross = [[], []]
+		# for x and y
+		(0..1).each do |i|
+			# if there is a diff
+			if mult[i] != 0
+				# start from the corner in the direction of the movement
+				lower = @pos[i] + (@diff[i] > 0 ? 1 : 0) * $block_size
+				# end at that corner's final position
+				upper = lower + @diff[i]
+				# and step by the block size
+				((lower * mult[i])...(upper * mult[i])).step($block_size) do |j|
+					crs = []
+					# the crossing coordinate we get by stepping
+					crs[i] = j * mult[i]
+					# the other coordinate we have to calculate
+					# TODO this is potential for rounding errors and division by zero here
+					crs[1 - i] = (@diff[1 - i] * j * mult[i]) / @diff[i].to_f + (@pos[1 - i] + (@diff[1 - i] > 0 ? 1 : 0) * $block_size) - (@diff[1 - i] * lower) / @diff[i].to_f
+					@cross[i] << crs
+				end
+			end
+		end
 	end
 end
 
@@ -164,11 +194,18 @@ end
 
 blocks.each { |x, y| level[x][y] = Block.new(brick, x, y) }
 
-player = Player.new(level, dude, [7, 4])
+player = Player.new(level, dude, [8, 6])
 
 green = Color.new(0, 255, 0, 127)
 debug = RectangleShape.new([$block_size, $block_size])
 debug.set_fill_color(green)
+
+red = Color.new(255, 0, 0, 127)
+blue = Color.new(0, 0, 255, 127)
+msize = 2
+mousedot = CircleShape.new(msize)
+mousedot.set_origin([msize, msize])
+mousedot.set_fill_color(red)
 
 gray = Color.new(80, 80, 80)
 
@@ -192,7 +229,7 @@ while window.open?
 			when Keyboard::Up
 				player.jump
 			when Keyboard::R
-				player = Player.new(level, dude, 7, 4)
+				player = Player.new(level, dude, 8, 6)
 			end
 
 		when Event::KeyReleased
@@ -225,8 +262,28 @@ while window.open?
 		end
 	end
 
-	# draw FPS at regular zoom
+	m = Mouse.get_position(window)
+	m = [m.x.to_f / $zoom, m.y.to_f / $zoom]
+
+	debug.set_position(m)
+	window.draw(debug)
+	player.move_to(m)
+
+	mousedot.set_fill_color(red)
+	player.cross[0].each do |d|
+		mousedot.set_position(d)
+		window.draw(mousedot)
+	end
+	mousedot.set_fill_color(blue)
+	player.cross[1].each do |d|
+		mousedot.set_position(d)
+		window.draw(mousedot)
+	end
+
+
+	# draw stuff unzoomed
 	window.set_view(window.get_default_view)
+
 	window.draw(fps_text)
 	window.set_view(zoom_view)
 
