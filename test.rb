@@ -128,11 +128,10 @@ class Player
 		(0..1).each do |i|
 			# if there is a diff
 			if mult[i] != 0
-				# start from the corner in the direction of the movement
-				# TODO loewr should start at limit, not pos
-				lower = @pos[i] + (@diff[i] > 0 ? 1 : 0) * $block_size
+				# start from the limit corner in the direction of the movement
+				lower = (@limit[mult[i]][i] + (@diff[i] > 0 ? 1 : 0)) * $block_size
 				# end at that corner's final position
-				upper = lower + @diff[i]
+				upper = @pos[i] + (@diff[i] > 0 ? 1 : 0) * $block_size + @diff[i]
 				# and step by the block size
 				((lower * mult[i])...(upper * mult[i])).step($block_size) do |j|
 					crs = []
@@ -140,7 +139,7 @@ class Player
 					crs[i] = j * mult[i]
 					# the other coordinate we have to calculate
 					# TODO this has potential for rounding errors
-					crs[1 - i] = (@diff[1 - i] * j * mult[i]) / @diff[i].to_f + (@pos[1 - i] + (@diff[1 - i] > 0 ? 1 : 0) * $block_size) - (@diff[1 - i] * lower) / @diff[i].to_f
+					crs[1 - i] = (@diff[1 - i] * j * mult[i]) / @diff[i].to_f + (@pos[1 - i] + (@diff[1 - i] > 0 ? 1 : 0) * $block_size) - (@diff[1 - i] * (@pos[i] + (@diff[i] > 0 ? 1 : 0) * $block_size)) / @diff[i].to_f
 					# TODO 1/10th of pixel seems good enough...
 					@cross[i] << crs.map { |c| c.round(1) }
 				end
@@ -171,7 +170,6 @@ class Player
 			end
 
 			# move to next crossing and subtract from diff
-			STDERR.puts type
 			@diff.map!.with_index { |d, i| d - point[i] + @pos[i] }
 			@pos = point
 		end
