@@ -117,7 +117,7 @@ class Player
 	end
 
 	# currently, calculate array of horizontal/vertical grid crossings from @pos to pos
-	def move_to pos
+	def move_to pos, move
 		# convert pos to @diff (this won't be necessary when doing it for real)
 		@diff = pos.map.with_index { |p, i| p - @pos[i] }
 		# this multiplier accounts for @diffs being negative
@@ -129,6 +129,7 @@ class Player
 			# if there is a diff
 			if mult[i] != 0
 				# start from the corner in the direction of the movement
+				# TODO loewr should start at limit, not pos
 				lower = @pos[i] + (@diff[i] > 0 ? 1 : 0) * $block_size
 				# end at that corner's final position
 				upper = lower + @diff[i]
@@ -138,12 +139,44 @@ class Player
 					# the crossing coordinate we get by stepping
 					crs[i] = j * mult[i]
 					# the other coordinate we have to calculate
-					# TODO this is potential for rounding errors and division by zero here
+					# TODO this has potential for rounding errors
 					crs[1 - i] = (@diff[1 - i] * j * mult[i]) / @diff[i].to_f + (@pos[1 - i] + (@diff[1 - i] > 0 ? 1 : 0) * $block_size) - (@diff[1 - i] * lower) / @diff[i].to_f
-					@cross[i] << crs
+					# TODO 1/10th of pixel seems good enough...
+					@cross[i] << crs.map { |c| c.round(1) }
 				end
 			end
 		end
+
+		return unless move
+
+		until @cross.all?(&:empty?)
+			# determine what next crossing is
+			type = nil
+			if @cross[1].empty?
+				type = :x
+				point = @cross[0].shift
+			elsif @cross[0].empty?
+				type = :y
+				point = @cross[1].shift
+			elsif @cross[0][0] == @cross[1][0]
+				type = :corner
+				point = @cross[0].shift
+				@cross[1].shift
+			elsif @cross[0][0][0] * mult[0] < @cross[1][0][0] * mult[0] or @cross[0][0][1] * mult[1] < @cross[1][0][1] * mult[1]
+				type = :x
+				point = @cross[0].shift
+			else
+				type = :y
+				point = @cross[1].shift
+			end
+
+			# move to next crossing and subtract from diff
+			STDERR.puts type
+			@diff.map!.with_index { |d, i| d - point[i] + @pos[i] }
+			@pos = point
+		end
+
+		@pos.map!.with_index { |c, i| c + @diff[i] }
 	end
 end
 
@@ -213,6 +246,7 @@ clock = Clock.new
 
 # game loop
 while window.open?
+	click = false
 
 	window.each_event do |event|
 		case event.type
@@ -231,7 +265,6 @@ while window.open?
 			when Keyboard::R
 				player = Player.new(level, dude, 8, 6)
 			end
-
 		when Event::KeyReleased
 			case event.key.code
 			when Keyboard::Left
@@ -239,6 +272,8 @@ while window.open?
 			when Keyboard::Right
 				player.dir = 0
 			end
+		when Event::MouseButtonReleased
+			click = event.mouse_button.button == 0
 		end
 	end
 
@@ -267,7 +302,7 @@ while window.open?
 
 	debug.set_position(m)
 	window.draw(debug)
-	player.move_to(m)
+	player.move_to(m, click)
 
 	mousedot.set_fill_color(red)
 	player.cross[0].each do |d|
