@@ -209,12 +209,8 @@ class Player
 					collision = true
 				end
 			end
-			if collision
-				@diff = [0, 0]
-				break
-			end
-			# TODO for reals
-			#return move_to(foo) if collision
+
+			return resolve_movement(move) if collision
 		end
 
 		@pos.map!.with_index { |c, i| c + @diff[i] }
