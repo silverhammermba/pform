@@ -117,9 +117,11 @@ class Player
 	end
 
 	# currently, calculate array of horizontal/vertical grid crossings from @pos to pos
-	def move_to pos, move
+	def move_to pos, move, window
 		# convert pos to @diff (this won't be necessary when doing it for real)
 		@diff = pos.map.with_index { |p, i| p - @pos[i] }
+		# shift to get the leading corner
+		corner = @diff.map { |d| d > 0 ? 1 : 0 }
 		# this multiplier accounts for @diffs being negative
 		mult = @diff.map(&:sign)
 		# where we store the crossings
@@ -129,9 +131,9 @@ class Player
 			# if there is a diff
 			if mult[i] != 0
 				# start from the limit corner in the direction of the movement
-				lower = (@limit[mult[i]][i] + (@diff[i] > 0 ? 1 : 0)) * $block_size
+				lower = (@limit[mult[i]][i] + corner[i]) * $block_size
 				# end at that corner's final position
-				upper = @pos[i] + (@diff[i] > 0 ? 1 : 0) * $block_size + @diff[i]
+				upper = @pos[i] + corner[i] * $block_size + @diff[i]
 				# and step by the block size
 				((lower * mult[i])...(upper * mult[i])).step($block_size) do |j|
 					crs = []
@@ -139,13 +141,14 @@ class Player
 					crs[i] = j * mult[i]
 					# the other coordinate we have to calculate
 					# TODO this has potential for rounding errors
-					crs[1 - i] = (@diff[1 - i] * j * mult[i]) / @diff[i].to_f + (@pos[1 - i] + (@diff[1 - i] > 0 ? 1 : 0) * $block_size) - (@diff[1 - i] * (@pos[i] + (@diff[i] > 0 ? 1 : 0) * $block_size)) / @diff[i].to_f
+					crs[1 - i] = (@diff[1 - i] * j * mult[i]) / @diff[i].to_f + (@pos[1 - i] + corner[1 - i] * $block_size) - (@diff[1 - i] * (@pos[i] + corner[i] * $block_size)) / @diff[i].to_f
 					# TODO 1/10th of pixel seems good enough...
 					@cross[i] << crs.map { |c| c.round(1) }
 				end
 			end
 		end
 
+		# TODO for debugging
 		return unless move
 
 		until @cross.all?(&:empty?)
@@ -169,12 +172,61 @@ class Player
 				point = @cross[1].shift
 			end
 
+			STDERR.puts "before", point.inspect
+			point.map!.with_index { |c, i| c - corner[i] * $block_size }
+			STDERR.puts "after", point.inspect
+
 			# move to next crossing and subtract from diff
-			@diff.map!.with_index { |d, i| d - point[i] + @pos[i] }
+			@diff[0] -= point[0] - @pos[0]
+			@diff[1] -= point[1] - @pos[1]
+			STDERR.puts "diff #{@diff.inspect}"
 			@pos = point
+			@sprite.set_position(*@pos)
+			window.draw(@sprite)
+			window.display
+			sleep(0.5)
+			STDERR.puts "pos #{@pos.inspect}"
+
+			find_relevant_region
+
+			collision = false
+			nxt = []
+			(0..1).each do |i|
+				nxt[i] = @limit[mult[i]][i] + mult[i] if mult[i] != 0
+			end
+			if type == :x or type == :corner
+				if @level[nxt[0]][@limit[-1][1]] or @level[nxt[0]][@limit[1][1]]
+					STDERR.puts "X collision checking #{nxt[0]},#{@limit[-1][1]} and #{nxt[0]},#{@limit[1][1]}"
+					@diff[0] = 0
+					collision = true
+				end
+			end
+			if type == :y or type == :corner
+				if @level[@limit[-1][0]][nxt[1]] or @level[@limit[1][0]][nxt[1]]
+					STDERR.puts "Y collision checking #{@limit[-1][0]},#{nxt[1]} and #{@limit[1][0]},#{nxt[1]}"
+					@diff[1] = 0
+					collision = true
+				end
+			end
+			if type == :corner and @diff.all? { |c| c != 0 }
+				if @level[nxt[0]][nxt[1]]
+					STDERR.puts "corner collision checking #{@limit[mult[0]][0]+mult[0]},#{@limit[mult[1]][1]+mult[1]}"
+					@diff[1] = 0 # TODO arbitrary placeholder
+					collision = true
+				end
+			end
+			if collision
+				@diff = [0, 0]
+				STDERR.puts "before"
+				STDERR.puts @limit.inspect
+				break
+			end
+			# TODO for reals
+			#return move_to(foo) if collision
 		end
 
 		@pos.map!.with_index { |c, i| c + @diff[i] }
+		find_relevant_region
 	end
 end
 
@@ -233,7 +285,7 @@ debug.set_fill_color(green)
 
 red = Color.new(255, 0, 0, 127)
 blue = Color.new(0, 0, 255, 127)
-msize = 2
+msize = 1
 mousedot = CircleShape.new(msize)
 mousedot.set_origin([msize, msize])
 mousedot.set_fill_color(red)
@@ -300,7 +352,11 @@ while window.open?
 
 	debug.set_position(m)
 	window.draw(debug)
-	player.move_to(m, click)
+	player.move_to(m, click, window)
+	if click
+		STDERR.puts "after"
+		STDERR.puts player.limit.inspect
+	end
 
 	mousedot.set_fill_color(red)
 	player.cross[0].each do |d|
