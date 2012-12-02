@@ -3,7 +3,7 @@
 require 'sfml/system'
 require 'sfml/window'
 require 'sfml/graphics'
-require 'player'
+require './player'
 
 include SFML
 
