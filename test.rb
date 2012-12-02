@@ -172,20 +172,12 @@ class Player
 				point = @cross[1].shift
 			end
 
-			STDERR.puts "before", point.inspect
 			point.map!.with_index { |c, i| c - corner[i] * $block_size }
-			STDERR.puts "after", point.inspect
 
 			# move to next crossing and subtract from diff
 			@diff[0] -= point[0] - @pos[0]
 			@diff[1] -= point[1] - @pos[1]
-			STDERR.puts "diff #{@diff.inspect}"
 			@pos = point
-			@sprite.set_position(*@pos)
-			window.draw(@sprite)
-			window.display
-			sleep(0.5)
-			STDERR.puts "pos #{@pos.inspect}"
 
 			find_relevant_region
 
@@ -196,29 +188,24 @@ class Player
 			end
 			if type == :x or type == :corner
 				if @level[nxt[0]][@limit[-1][1]] or @level[nxt[0]][@limit[1][1]]
-					STDERR.puts "X collision checking #{nxt[0]},#{@limit[-1][1]} and #{nxt[0]},#{@limit[1][1]}"
 					@diff[0] = 0
 					collision = true
 				end
 			end
 			if type == :y or type == :corner
 				if @level[@limit[-1][0]][nxt[1]] or @level[@limit[1][0]][nxt[1]]
-					STDERR.puts "Y collision checking #{@limit[-1][0]},#{nxt[1]} and #{@limit[1][0]},#{nxt[1]}"
 					@diff[1] = 0
 					collision = true
 				end
 			end
 			if type == :corner and @diff.all? { |c| c != 0 }
 				if @level[nxt[0]][nxt[1]]
-					STDERR.puts "corner collision checking #{@limit[mult[0]][0]+mult[0]},#{@limit[mult[1]][1]+mult[1]}"
 					@diff[1] = 0 # TODO arbitrary placeholder
 					collision = true
 				end
 			end
 			if collision
 				@diff = [0, 0]
-				STDERR.puts "before"
-				STDERR.puts @limit.inspect
 				break
 			end
 			# TODO for reals
@@ -353,10 +340,6 @@ while window.open?
 	debug.set_position(m)
 	window.draw(debug)
 	player.move_to(m, click, window)
-	if click
-		STDERR.puts "after"
-		STDERR.puts player.limit.inspect
-	end
 
 	mousedot.set_fill_color(red)
 	player.cross[0].each do |d|
