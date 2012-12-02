@@ -56,23 +56,24 @@ class Player
 		# break speed when idle
 		@break = @acc[0] * 2
 		# terminal velocities
-		@trm = [75, 100]
+		@trm = [75, 300]
 		# x direction from keyboard
 		@dir = 0
 		# if the player is on the ground
 		@standing = false
 
+		# whether the player is holding a key in this direction
+		@keypress = [false, false]
+
 		find_relevant_region
 		@sprite.set_position(*@pos.map(&:floor))
 	end
 
-	attr_accessor :dir
-	attr_reader :sprite, :limit, :cross
+	attr_accessor :dir, :keypress
+	attr_reader :sprite, :limit, :cross, :vel
 
 	def jump
 		if @standing
-			# align pixels to allow jumping through narrow gaps
-			@pos[0] = @pos[0].round
 			@vel[1] = -250
 			@standing = false
 		end
@@ -86,6 +87,8 @@ class Player
 
 	# move the player
 	def step seconds
+		# TODO quickly turning around is TOO SLOW
+
 		# if moving and no key pressed, break
 		if @vel[0] != 0 and @dir * @vel[0] <= 0
 			@vel[0] = reduce(@vel[0], @break * seconds)
@@ -99,11 +102,12 @@ class Player
 		# clamp velocity
 		@vel.map!.with_index { |v, i| v.clamp(-@trm[i], @trm[i]) }
 
+		# TODO need to round to pixel coords if no vel + no keypress
+
 		@diff = @vel.map { |v| v * seconds }
 		if @diff.any? { |d| d != 0 }
-			#resolve_movement
-			find_relevant_region
-			@sprite.set_position(*@pos)
+			resolve_movement(true)
+			@sprite.set_position(*@pos.map(&:round))
 		end
 	end
 
@@ -147,8 +151,8 @@ class Player
 					# the other coordinate we have to calculate
 					# TODO this has potential for rounding errors
 					crs[1 - i] = (@diff[1 - i] * j * mult[i]) / @diff[i].to_f + (@pos[1 - i] + corner[1 - i] * $block_size) - (@diff[1 - i] * (@pos[i] + corner[i] * $block_size)) / @diff[i].to_f
-					# TODO 1/10th of pixel seems good enough...
-					@cross[i] << crs.map { |c| c.round(1) }
+					# TODO but rounding here lets you teleport into corners
+					@cross[i] << crs#.map { |c| c.round(1) }
 				end
 			end
 		end
@@ -191,15 +195,31 @@ class Player
 			(0..1).each do |i|
 				nxt[i] = @limit[mult[i]][i] + mult[i] if mult[i] != 0
 			end
+			# crossing X
 			if type == :x or type == :corner
+				# if standing and nothing underneath, fall
+				if @standing and not @level[@limit[1][0]][@limit[1][1] + 1]
+					@standing = false
+					@pos[1] += 1 # TODO bit of hack to make sure gaps can't be skipped
+					find_relevant_region
+					collision = true
+				end
+				# check for walls
 				if @level[nxt[0]][@limit[-1][1]] or @level[nxt[0]][@limit[1][1]]
 					@diff[0] = 0
 					collision = true
 				end
 			end
+			# crossing Y
 			if type == :y or type == :corner
 				if @level[@limit[-1][0]][nxt[1]] or @level[@limit[1][0]][nxt[1]]
 					@diff[1] = 0
+					# if moving downward, you are now standing, else you hit your head
+					if mult[1] > 0
+						stand!
+					else
+						@vel[1] = 0
+					end
 					collision = true
 				end
 			end
@@ -210,7 +230,9 @@ class Player
 				end
 			end
 
-			return resolve_movement(move) if collision
+			if collision
+				return resolve_movement(move)
+			end
 		end
 
 		@pos.map!.with_index { |c, i| c + @diff[i] }
@@ -247,6 +269,11 @@ font.load_from_file("/usr/share/fonts/TTF/VeraMono.ttf")
 fps_text = Text.new("", font, 12)
 fps_text.set_color(Color::Black)
 
+# keypress text
+kpt = Text.new("", font, 12)
+kpt.set_color(Color::Black)
+kpt.set_position(10, 20)
+
 # load textures
 dude = Texture.new
 brick = Texture.new
@@ -281,6 +308,7 @@ mousedot.set_fill_color(red)
 gray = Color.new(80, 80, 80)
 
 clock = Clock.new
+overlap = false
 
 # game loop
 while window.open?
@@ -309,6 +337,10 @@ while window.open?
 				player.dir = 0
 			when Keyboard::Right
 				player.dir = 0
+			when Keyboard::X
+				player.keypress[0] = !player.keypress[0]
+			when Keyboard::Y
+				player.keypress[1] = !player.keypress[1]
 			end
 		when Event::MouseButtonReleased
 			click = event.mouse_button.button == 0
@@ -323,17 +355,29 @@ while window.open?
 	fps = 1 / time
 	fps_text.set_string fps.to_i.to_s
 
+	kpt.set_string("#{player.keypress.inspect} #{player.vel.inspect}")
+
 	window.clear(gray)
 
 	level.each { |row| row.each { |block| window.draw(block.sprite) if block } }
 	window.draw(player.sprite)
 
-	((player.limit[-1][1])..(player.limit[1][1])).each do |i|
-		((player.limit[-1][0])..(player.limit[1][0])).each do |j|
-			debug.set_position(j * $block_size, i * $block_size)
+	thisoverlap = false
+	((player.limit[-1][0])..(player.limit[1][0])).each do |i|
+		((player.limit[-1][1])..(player.limit[1][1])).each do |j|
+			if level[i][j]
+				thisoverlap = true
+				if not overlap
+					overlap = true
+					STDERR.puts "Overlapped level at #{i},#{j}"
+					sleep(5)
+				end
+			end
+			debug.set_position(i * $block_size, j * $block_size)
 			window.draw(debug)
 		end
 	end
+	overlap = false unless thisoverlap
 
 	m = Mouse.get_position(window)
 	m = [m.x.to_f / $zoom, m.y.to_f / $zoom]
@@ -358,6 +402,7 @@ while window.open?
 	window.set_view(window.get_default_view)
 
 	window.draw(fps_text)
+	window.draw(kpt)
 	window.set_view(zoom_view)
 
 	window.display
