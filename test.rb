@@ -116,10 +116,15 @@ class Player
 		@standing = false
 	end
 
-	# currently, calculate array of horizontal/vertical grid crossings from @pos to pos
-	def move_to pos, move, window
-		# convert pos to @diff (this won't be necessary when doing it for real)
+	# set diff by absolute position and resolve
+	def move_to pos, move
+		# convert pos to @diff
 		@diff = pos.map.with_index { |p, i| p - @pos[i] }
+		resolve_movement move
+	end
+
+	# resolve a diff
+	def resolve_movement move
 		# shift to get the leading corner
 		corner = @diff.map { |d| d > 0 ? 1 : 0 }
 		# this multiplier accounts for @diffs being negative
@@ -339,7 +344,7 @@ while window.open?
 
 	debug.set_position(m)
 	window.draw(debug)
-	player.move_to(m, click, window)
+	player.move_to(m, click)
 
 	mousedot.set_fill_color(red)
 	player.cross[0].each do |d|
