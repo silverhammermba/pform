@@ -47,7 +47,7 @@ class Player
 	def step seconds
 		# TODO quickly turning around is TOO SLOW
 
-		# if moving and no key pressed, break
+		# if moving and no key pressed, apply breaks
 		if @vel[0] != 0 and @dir * @vel[0] <= 0
 			@vel[0] = reduce(@vel[0], @break * seconds)
 		else # @vel[0] == 0 or @dir * @vel[0] > 0
@@ -61,14 +61,17 @@ class Player
 		@vel.map!.with_index { |v, i| v.clamp(-@trm[i], @trm[i]) }
 
 		# TODO need to round to pixel coords if no vel + no keypress
-		hack = false
-		if @vel.all? { |v| v == 0 }
-			rounded = @pos.map { |c| c.round }
-			hack = rounded != @pos
-		end
 
 		@diff = @vel.map { |v| v * seconds }
-		if hack or @diff.any? { |d| d != 0 }
+
+		if @vel.all? { |v| v == 0 }
+			rounded = @pos.map { |c| c.round }
+			if rounded != @pos
+				@diff = @pos.map.with_index { |c, i| rounded[i] - c }
+			end
+		end
+
+		if @diff.any? { |d| d != 0 }
 			resolve_movement(true)
 			@sprite.set_position(*@pos.map(&:round))
 		end
@@ -144,6 +147,7 @@ class Player
 				point = @cross[1].shift
 			end
 
+
 			point.map!.with_index { |c, i| c - corner[i] * $block_size }
 
 			# move to next crossing and subtract from diff
@@ -200,5 +204,11 @@ class Player
 
 		@pos.map!.with_index { |c, i| c + @diff[i] }
 		find_relevant_region
+
+		# TODO the final movement can align, causing a fall
+		if @standing and not (@level[@limit[-1][0]][@limit[1][1] + 1] or @level[@limit[1][0]][@limit[1][1] + 1])
+			@standing = false
+		end
+
 	end
 end
