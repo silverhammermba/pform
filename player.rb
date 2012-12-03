@@ -189,6 +189,10 @@ class Player
 					end
 					collision = true
 				end
+				if @dir != 0 and @pos[0] % $block_size == 0 and not @level[@limit[1][0] + @dir][@limit[1][1]]
+					@pos[0] += @dir
+					collision = true
+				end
 			end
 			if type == :corner and @diff.all? { |c| c != 0 }
 				if @level[nxt[0]][nxt[1]]
