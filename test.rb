@@ -11,36 +11,6 @@ $block_size = 16
 # zoom factor
 $zoom = 4
 
-class Numeric
-	def sign
-		if self > 0
-			return 1
-		elsif self < 0
-			return -1
-		end
-		return 0
-	end
-
-	def clamp lb, ub
-		if self < lb
-			lb
-		elsif self > ub
-			ub
-		else
-			self
-		end
-	end
-end
-
-def reduce y, x
-	if y > 0
-		y -= [x, y].min
-	elsif y < 0
-		y += [x, -y].min
-	end
-	y
-end
-
 class Block
 	def initialize texture, x, y, solid = true
 		@sprite = Sprite.new(texture)
@@ -70,10 +40,12 @@ font.load_from_file("/usr/share/fonts/TTF/VeraMono.ttf")
 fps_text = Text.new("", font, 12)
 fps_text.set_color(Color::Black)
 
-# keypress text
-kpt = Text.new("", font, 12)
-kpt.set_color(Color::Black)
-kpt.set_position(10, 20)
+if $DEBUG
+	# random debug text
+	kpt = Text.new("", font, 12)
+	kpt.set_color(Color::Black)
+	kpt.set_position(10, 20)
+end
 
 # load textures
 dude = Texture.new
@@ -95,21 +67,23 @@ blocks.each { |x, y| level[x][y] = Block.new(brick, x, y) }
 
 player = Player.new(level, dude, [8, 6])
 
-green = Color.new(0, 255, 0, 127)
-debug = RectangleShape.new([$block_size, $block_size])
-debug.set_fill_color(green)
+if $DEBUG
+	green = Color.new(0, 255, 0, 127)
+	debug = RectangleShape.new([$block_size, $block_size])
+	debug.set_fill_color(green)
 
-red = Color.new(255, 0, 0, 127)
-blue = Color.new(0, 0, 255, 127)
-msize = 1
-mousedot = CircleShape.new(msize)
-mousedot.set_origin([msize, msize])
-mousedot.set_fill_color(red)
+	red = Color.new(255, 0, 0, 127)
+	blue = Color.new(0, 0, 255, 127)
+	msize = 1
+	mousedot = CircleShape.new(msize)
+	mousedot.set_origin([msize, msize])
+	mousedot.set_fill_color(red)
+	overlap = false
+end
 
 gray = Color.new(80, 80, 80)
 
 clock = Clock.new
-overlap = false
 
 # game loop
 while window.open?
@@ -138,10 +112,6 @@ while window.open?
 				player.dir = 0
 			when Keyboard::Right
 				player.dir = 0
-			when Keyboard::X
-				player.keypress[0] = !player.keypress[0]
-			when Keyboard::Y
-				player.keypress[1] = !player.keypress[1]
 			end
 		when Event::MouseButtonReleased
 			click = event.mouse_button.button == 0
@@ -156,53 +126,56 @@ while window.open?
 	fps = 1 / time
 	fps_text.set_string fps.to_i.to_s
 
-	kpt.set_string("#{player.keypress.inspect} #{player.vel.inspect}")
-
 	window.clear(gray)
 
 	level.each { |row| row.each { |block| window.draw(block.sprite) if block } }
 	window.draw(player.sprite)
 
-	thisoverlap = false
-	((player.limit[-1][0])..(player.limit[1][0])).each do |i|
-		((player.limit[-1][1])..(player.limit[1][1])).each do |j|
-			if level[i][j]
-				thisoverlap = true
-				if not overlap
-					overlap = true
-					STDERR.puts "Overlapped level at #{i},#{j}"
-					sleep(5)
+	if $DEBUG
+		kpt.set_string("#{player.keypress.inspect} #{player.vel.inspect}")
+		thisoverlap = false
+		((player.limit[-1][0])..(player.limit[1][0])).each do |i|
+			((player.limit[-1][1])..(player.limit[1][1])).each do |j|
+				if level[i][j]
+					thisoverlap = true
+					if not overlap
+						overlap = true
+						STDERR.puts "Overlapped level at #{i},#{j}"
+						sleep(5)
+					end
 				end
+				debug.set_position(i * $block_size, j * $block_size)
+				window.draw(debug)
 			end
-			debug.set_position(i * $block_size, j * $block_size)
-			window.draw(debug)
 		end
-	end
-	overlap = false unless thisoverlap
+		overlap = false unless thisoverlap
 
-	m = Mouse.get_position(window)
-	m = [m.x.to_f / $zoom, m.y.to_f / $zoom]
+		m = Mouse.get_position(window)
+		m = [m.x.to_f / $zoom, m.y.to_f / $zoom]
 
-	debug.set_position(m)
-	window.draw(debug)
-	player.move_to(m, click)
+		debug.set_position(m)
+		window.draw(debug)
+		player.move_to(m, click)
 
-	mousedot.set_fill_color(red)
-	player.cross[0].each do |d|
-		mousedot.set_position(d)
-		window.draw(mousedot)
-	end
-	mousedot.set_fill_color(blue)
-	player.cross[1].each do |d|
-		mousedot.set_position(d)
-		window.draw(mousedot)
+		mousedot.set_fill_color(red)
+		player.cross[0].each do |d|
+			mousedot.set_position(d)
+			window.draw(mousedot)
+		end
+		mousedot.set_fill_color(blue)
+		player.cross[1].each do |d|
+			mousedot.set_position(d)
+			window.draw(mousedot)
+		end
 	end
 
 	# draw stuff unzoomed
 	window.set_view(window.get_default_view)
 
 	window.draw(fps_text)
-	window.draw(kpt)
+	if $DEBUG
+		window.draw(kpt)
+	end
 	window.set_view(zoom_view)
 
 	window.display

@@ -1,3 +1,33 @@
+class Numeric
+	def sign
+		if self > 0
+			return 1
+		elsif self < 0
+			return -1
+		end
+		return 0
+	end
+
+	def clamp lb, ub
+		if self < lb
+			lb
+		elsif self > ub
+			ub
+		else
+			self
+		end
+	end
+end
+
+def reduce y, x
+	if y > 0
+		y -= [x, y].min
+	elsif y < 0
+		y += [x, -y].min
+	end
+	y
+end
+
 class Player
 	def initialize level, texture, pos
 		@level = level
