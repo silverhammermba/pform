@@ -85,7 +85,7 @@ brick.load_from_file("block.png")
 level = Array.new(bw) { |i| Array.new(bh) { |j| nil } }
 
 blocks = [
-	[0, 1], [0, 5], [1, 5], [1, 3], [1, 6], [0, 6], [7, 5], [7, 6], [9, 5], [9, 6]
+	[0, 1], [0, 5], [1, 5], [1, 3], [1, 6], [0, 6], [5, 5], [7, 5], [9, 5], [9, 6]
 ]
 for i in (0...bw)
 	blocks << [i, bh - 1]
