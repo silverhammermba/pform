@@ -1,6 +1,7 @@
 #include <sstream>
-#include <SFML/Graphics.hpp>
-#include "pform.hpp"
+#include "game.hpp"
+
+#define SCALE 4 // pixel scaling factor
 
 int main(int argc, char* argv[])
 {
@@ -12,10 +13,12 @@ int main(int argc, char* argv[])
 	unsigned int p_width = b_width * PPB;
 	unsigned int p_height = b_height * PPB;
 
+	// set up window and view
 	sf::RenderWindow window(sf::VideoMode(p_width * SCALE, p_height * SCALE), "Pform", sf::Style::Titlebar);
 	sf::View zoom_view(sf::Vector2f(p_width / 2, p_height / 2), sf::Vector2f(p_width, p_height));
 	window.setView(zoom_view);
 
+	// set up text
 	sf::Font font;
 	font.loadFromFile("/usr/share/fonts/TTF/VeraMono.ttf");
 
@@ -24,6 +27,7 @@ int main(int argc, char* argv[])
 	sf::Text fps_text("", font, 12);
 	fps_text.setColor(sf::Color::Black);
 
+	// load textures
 	sf::Texture squid;
 	sf::Texture panel;
 	squid.loadFromFile("char.png");
@@ -33,12 +37,12 @@ int main(int argc, char* argv[])
 
 	// TODO create level and player
 
+	// game loop
 	sf::Clock clock;
-
 	while (window.isOpen())
 	{
+		// process events
 		sf::Event event;
-
 		while (window.pollEvent(event))
 		{
 			switch (event.type)
