@@ -7,12 +7,12 @@ namespace Pform
 	{
 		unsigned int width;
 		unsigned int height;
-		std::vector<Pform::Entity*> grid;
+		std::vector<StaticEntity*> grid;
 	public:
 		Level(unsigned int w, unsigned int h);
 
-		Pform::Entity* get(int x, int y);
-		void set(int x, int y, Pform::Entity* entity);
+		StaticEntity* get(int x, int y);
+		void set(int x, int y, StaticEntity* entity);
 	};
 
 	class LevelException : public std::runtime_error

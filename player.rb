@@ -50,14 +50,11 @@ class Player
 		# if the player is on the ground
 		@standing = false
 
-		# whether the player is holding a key in this direction
-		@keypress = [false, false]
-
 		find_relevant_region
 		@sprite.set_position(*@pos.map(&:floor))
 	end
 
-	attr_accessor :dir, :keypress
+	attr_accessor :dir
 	attr_reader :sprite, :limit, :cross, :vel
 
 	def jump
@@ -110,10 +107,6 @@ class Player
 	def stand!
 		@standing = true
 		@vel[1] = 0
-	end
-
-	def fall!
-		@standing = false
 	end
 
 	# set diff by absolute position and resolve

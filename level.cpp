@@ -6,7 +6,7 @@ Pform::Level::Level(unsigned int w, unsigned int h) : grid(w * h, nullptr)
 	height = h;
 }
 
-Pform::Entity* Pform::Level::get(int x, int y)
+Pform::StaticEntity* Pform::Level::get(int x, int y)
 {
 	if (x < 0)
 		x += width;
@@ -19,7 +19,7 @@ Pform::Entity* Pform::Level::get(int x, int y)
 	return grid[width * x + y];
 }
 
-void Pform::Level::set(int x, int y, Pform::Entity* entity)
+void Pform::Level::set(int x, int y, Pform::StaticEntity* entity)
 {
 	if (x < 0)
 		x += width;
