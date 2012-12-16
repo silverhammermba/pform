@@ -3,6 +3,8 @@
 
 namespace Pform
 {
+	class Level;
+
 	class StaticEntity
 	{
 		bool solid;
@@ -12,7 +14,11 @@ namespace Pform
 
 	class DynamicEntity
 	{
-		Level* level;
+		enum Type {
+			X, Y, Corner
+		};
+
+		const Level* level;
 
 		double position[2];
 		double delta[2]; // amount left to move
@@ -29,13 +35,12 @@ namespace Pform
 	public:
 		DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk);
 
-		double [2] get_position() const { return position; }
+		const double* get_position() const { return position; }
 		unsigned int get_limit(int dir, unsigned int coord) const;
 
 		void update_relevant_region(); // recompute overlapped level blocks
 		void jump();
 		void step(float seconds);
-		void stand();
 		void move_to(unsigned int x, unsigned int y);
 		void resolve_movement();
 	};

@@ -11,7 +11,7 @@ namespace Pform
 	public:
 		Level(unsigned int w, unsigned int h);
 
-		StaticEntity* get(int x, int y);
+		StaticEntity* get(int x, int y) const;
 		void set(int x, int y, StaticEntity* entity);
 	};
 

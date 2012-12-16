@@ -1,9 +1,10 @@
 #ifndef PFORM_H_
 #define PFORM_H_
 
+#include <array>
 #include <cmath>
 #include <stdexcept>
-#include <vector>
+#include <queue>
 #include "entity.hpp"
 #include "level.hpp"
 
