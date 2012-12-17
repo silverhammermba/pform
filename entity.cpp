@@ -40,16 +40,6 @@ void Pform::DynamicEntity::update_relevant_region()
 	upper_limit[1] = std::floor(position[1] / PPB);
 }
 
-void Pform::DynamicEntity::jump()
-{
-	if (standing)
-	{
-		// TODO set jump power somewhere else
-		velocity[1] = -250;
-		standing = false;
-	}
-}
-
 void Pform::DynamicEntity::step(float seconds)
 {
 	// apply X acceleration

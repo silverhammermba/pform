@@ -22,27 +22,27 @@ namespace Pform
 
 		double position[2];
 		double delta[2]; // amount left to move
-		double velocity[2];
 		double terminal[2]; // terminal velocities
 		double acceleration[2]; // from movement and gravity
-		int impulse[2]; // if actively moving
 		// coords of overlapped blocks
 		unsigned int lower_limit[2];
 		unsigned int upper_limit[2];
 
 		double breaking; // deceleration when idle
-		bool standing; // if the entity is on the ground
+
+		void update_relevant_region(); // recompute overlapped level blocks
+		void resolve_movement(); // apply delta to position
 	public:
+		double velocity[2];
+		int impulse[2]; // if actively moving
+		bool standing; // if the entity is on the ground
+
 		DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk);
 
 		const double* get_position() const { return position; }
 		unsigned int get_limit(int dir, unsigned int coord) const;
 
-		void update_relevant_region(); // recompute overlapped level blocks
-		void jump();
-		void step(float seconds);
-		void move_to(unsigned int x, unsigned int y);
-		void resolve_movement();
+		void step(float seconds); // create delta
 	};
 }
 
