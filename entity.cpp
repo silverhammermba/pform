@@ -14,7 +14,7 @@ Pform::StaticEntity::StaticEntity(bool s)
 }
 
 Pform::DynamicEntity::DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk)
-	: position {(double)(x * PPB), (double)(y * PPB)}, delta {0, 0}, velocity {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, impulse {0, 0}, lower_limit(), upper_limit()
+	: position {(double)(x * PPB), (double)(y * PPB)}, delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), velocity {0, 0}, impulse {0, 0}
 {
 	level = &l;
 	breaking = brk;
