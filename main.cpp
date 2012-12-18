@@ -33,6 +33,10 @@ int main(int argc, char* argv[])
 	squid.loadFromFile("char.png");
 	panel.loadFromFile("block.png");
 
+	Block block(panel);
+	Pform::Level level(b_width, b_height);
+	Player player(squid, -250, level, 8, 6, 75, 300, 300, 800, 600);
+
 	sf::Color gray(80, 80, 80);
 
 	// TODO create level and player
@@ -66,11 +70,14 @@ int main(int argc, char* argv[])
 		float time = clock.getElapsedTime().asSeconds();
 		clock.restart();
 
+		player.step(time);
+
 		fps_string.str("");
 		fps_string << (unsigned int)(1 / time);
 		fps_text.setString(fps_string.str());
 
 		window.clear(gray);
+		player.draw_on(window);
 
 		window.setView(window.getDefaultView());
 		window.draw(fps_text);

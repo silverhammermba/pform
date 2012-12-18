@@ -11,6 +11,7 @@ public:
 	void jump();
 	void set_movement(int direction);
 	void step(float seconds);
+	void draw_on(sf::RenderWindow& window) { window.draw(sprite); }
 };
 
 #endif

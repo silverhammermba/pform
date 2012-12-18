@@ -10,6 +10,8 @@ namespace Pform
 		bool solid;
 	public:
 		StaticEntity(bool s = true);
+
+		bool is_solid() const { return solid; }
 	};
 
 	class DynamicEntity
