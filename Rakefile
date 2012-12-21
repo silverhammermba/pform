@@ -1,6 +1,6 @@
 require 'rake/clean'
 
-$cc = 'g++ -std=c++0x -Wall -Wextra'
+$cc = 'g++ -std=c++0x -Wall -Wextra -ggdb'
 $bin = 'launch'
 
 task :default => $bin
