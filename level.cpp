@@ -16,7 +16,7 @@ Pform::StaticEntity* Pform::Level::get(int x, int y) const
 	if (x < 0 || y < 0 || x >= (int)width || y >= (int)height)
 		throw Pform::LevelException();
 
-	return grid[width * x + y];
+	return grid[x + width * y];
 }
 
 void Pform::Level::set(int x, int y, Pform::StaticEntity* entity)
@@ -29,7 +29,7 @@ void Pform::Level::set(int x, int y, Pform::StaticEntity* entity)
 	if (x < 0 || y < 0 || x >= (int)width || y >= (int)height)
 		throw Pform::LevelException();
 
-	grid[width * x + y] = entity;
+	grid[x + width * y] = entity;
 }
 
 Pform::LevelException::LevelException() : std::runtime_error("Invalid grid index") {}
