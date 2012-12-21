@@ -7,7 +7,8 @@ class Block : public Pform::StaticEntity
 public:
 	Block(sf::Texture t, bool s = true);
 
-	void draw_on(sf::RenderWindow& window) { window.draw(sprite); }
+	const sf::Sprite& get_sprite() const { return sprite; }
+	void draw_on(sf::RenderWindow& window) const { window.draw(sprite); }
 };
 
 #endif

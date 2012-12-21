@@ -1,5 +1,9 @@
 #include <sstream>
+#include <iostream>
 #include "game.hpp"
+
+using std::cerr;
+using std::endl;
 
 #define SCALE 4 // pixel scaling factor
 
@@ -34,12 +38,22 @@ int main(int argc, char* argv[])
 	panel.loadFromFile("block.png");
 
 	Block block(panel);
+
 	Pform::Level level(b_width, b_height);
-	Player player(squid, -250, level, 8, 6, 75, 300, 300, 800, 600);
+	level.set(0, 1, &block);
+	level.set(0, 5, &block);
+	level.set(0, 6, &block);
+	level.set(1, 3, &block);
+	level.set(1, 5, &block);
+	level.set(1, 6, &block);
+	level.set(5, 5, &block);
+	level.set(7, 5, &block);
+	level.set(9, 5, &block);
+	level.set(9, 6, &block);
+
+	Player player(squid, 250, level, 8, 6, 75, 300, 300, 800, 600);
 
 	sf::Color gray(80, 80, 80);
-
-	// TODO create level and player
 
 	// game loop
 	sf::Clock clock;
@@ -60,9 +74,13 @@ int main(int argc, char* argv[])
 						case sf::Keyboard::Escape:
 							window.close();
 						// TODO other player controls
+						default:
+							break;
 					}
 				case sf::Event::KeyReleased:
 					// TODO player controls
+					break;
+				default:
 					break;
 			}
 		}
@@ -77,6 +95,10 @@ int main(int argc, char* argv[])
 		fps_text.setString(fps_string.str());
 
 		window.clear(gray);
+		for (unsigned int w = 0; w < b_width; w++)
+			for (unsigned int h = 0; h < b_height; h++)
+				if (level.get(w, h) != nullptr)
+					static_cast<Block*>(level.get(w, h))->draw_on(window);
 		player.draw_on(window);
 
 		window.setView(window.getDefaultView());
