@@ -50,6 +50,8 @@ int main(int argc, char* argv[])
 	level.set(7, 5, &block);
 	level.set(9, 5, &block);
 	level.set(9, 6, &block);
+	for (unsigned int x = 0; x < b_width; x++)
+		level.set(x, 7, &block);
 
 	Player player(squid, 250, level, 8, 6, 75, 300, 300, 800, 600);
 
@@ -88,7 +90,7 @@ int main(int argc, char* argv[])
 		float time = clock.getElapsedTime().asSeconds();
 		clock.restart();
 
-		player.step(0);
+		player.step(time);
 
 		fps_string.str("");
 		fps_string << (unsigned int)(1 / time);
