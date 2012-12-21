@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 		float time = clock.getElapsedTime().asSeconds();
 		clock.restart();
 
-		player.step(time);
+		player.step(0);
 
 		fps_string.str("");
 		fps_string << (unsigned int)(1 / time);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 		for (unsigned int w = 0; w < b_width; w++)
 			for (unsigned int h = 0; h < b_height; h++)
 				if (level.get(w, h) != nullptr)
-					static_cast<Block*>(level.get(w, h))->draw_on(window);
+					static_cast<Block*>(level.get(w, h))->draw_on(window, w * PPB, h * PPB);
 		player.draw_on(window);
 
 		window.setView(window.getDefaultView());
