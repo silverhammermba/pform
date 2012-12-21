@@ -75,12 +75,29 @@ int main(int argc, char* argv[])
 					{
 						case sf::Keyboard::Escape:
 							window.close();
-						// TODO other player controls
+						case sf::Keyboard::Left:
+							player.set_movement(-1);
+							break;
+						case sf::Keyboard::Right:
+							player.set_movement(1);
+							break;
+						case sf::Keyboard::Up:
+							player.jump();
+							break;
 						default:
 							break;
 					}
+					break;
 				case sf::Event::KeyReleased:
-					// TODO player controls
+					switch (event.key.code)
+					{
+						case sf::Keyboard::Left:
+						case sf::Keyboard::Right:
+							player.set_movement(0);
+							break;
+						default:
+							break;
+					}
 					break;
 				default:
 					break;
