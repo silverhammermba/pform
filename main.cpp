@@ -7,7 +7,7 @@ using std::endl;
 
 #define SCALE 4 // pixel scaling factor
 
-int main(int argc, char* argv[])
+int main()
 {
 	// window size in blocks
 	unsigned int b_width = 10;
