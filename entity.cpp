@@ -1,3 +1,4 @@
+#include <iostream>
 #include "pform.hpp"
 
 void reduce(double* x, double r)
@@ -34,10 +35,10 @@ unsigned int Pform::DynamicEntity::get_limit(int dir, unsigned int coord) const
 
 void Pform::DynamicEntity::update_relevant_region()
 {
-	lower_limit[0] = std::ceil(position[0] / PPB);
-	lower_limit[1] = std::ceil(position[1] / PPB);
-	upper_limit[0] = std::floor(position[0] / PPB);
-	upper_limit[1] = std::floor(position[1] / PPB);
+	lower_limit[0] = std::floor(position[0] / PPB);
+	lower_limit[1] = std::floor(position[1] / PPB);
+	upper_limit[0] = std::ceil(position[0] / PPB);
+	upper_limit[1] = std::ceil(position[1] / PPB);
 }
 
 void Pform::DynamicEntity::step(float seconds)
@@ -97,12 +98,12 @@ void Pform::DynamicEntity::resolve_movement()
 	{
 		if (delta[i] != 0)
 		{
-			unsigned int lower = (get_limit(multiplier[i], i) + corner[i]) * PPB;
-			double upper = position[i] + delta[i] + corner[i] * PPB;
-			for (unsigned int c = lower * multiplier[i]; c < upper * multiplier[i]; c++)
+			int lower = (get_limit(multiplier[i], i) + corner[i]) * PPB * multiplier[i];
+			double upper = (position[i] + delta[i] + corner[i] * PPB) * multiplier[i];
+			for (int c = lower; c < upper; c += PPB)
 			{
 				std::array<double, 2> cross;
-				cross[i] = c * multiplier[i];
+				cross[i] = c * multiplier[i]; // remove multiplier
 				cross[1 - i] =
 					(delta[1 - i] * c * multiplier[i])               / delta[i] -
 					(delta[1 - i] * (position[i] + corner[i] * PPB)) / delta[i] +
@@ -176,13 +177,14 @@ void Pform::DynamicEntity::resolve_movement()
 		if (type == Type::X or type == Type::Corner)
 		{
 			// if standing and nothing underneath, fall
-			if (standing && level->get(get_limit(1, 0), get_limit(1, 1) + 1) != nullptr)
+			if (standing && level->get(get_limit(1, 0), get_limit(1, 1) + 1) == nullptr)
 			{
 				standing = false;
 				position[1] += 1;
 				update_relevant_region();
 				collision = true;
 			}
+			// check for walls
 			if (level->get(next[0], get_limit(-1, 1)) || level->get(next[0], get_limit(1, 1)))
 			{
 				delta[0] = 0;
@@ -192,7 +194,7 @@ void Pform::DynamicEntity::resolve_movement()
 		// crossing Y
 		if (type == Type::Y || type == Type::Corner)
 		{
-			if (level->get(get_limit(-1, 0), next[1]) || level->get(get_limit(1, 0), next[1]))
+			if (level->get(get_limit(-1, 0), next[1]) != nullptr || level->get(get_limit(1, 0), next[1]) != nullptr)
 			{
 				delta[1] = 0;
 				velocity[1] = 0;
@@ -201,7 +203,7 @@ void Pform::DynamicEntity::resolve_movement()
 
 				collision = true;
 			}
-			if (impulse[0] != 0 && std::fmod(position[0], (double)PPB) == 0 && level->get(get_limit(1, 0) + impulse[0], get_limit(1, 1)) != nullptr)
+			if (impulse[0] != 0 && std::fmod(position[0], (double)PPB) == 0 && level->get(get_limit(1, 0) + impulse[0], get_limit(1, 1)) == nullptr)
 			{
 				position[0] += impulse[0];
 				collision = true;
