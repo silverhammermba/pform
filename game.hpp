@@ -5,5 +5,6 @@
 #include "pform.hpp"
 #include "block.hpp"
 #include "player.hpp"
+#include "world.hpp"
 
 #endif
