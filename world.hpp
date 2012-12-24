@@ -7,7 +7,9 @@ public:
 	World(unsigned int w, unsigned int h);
 	World(std::string filename);
 
-	void set(int x, int y, Block* block);
+	Block* get(int x, int y) const;
+
+	void draw_on(sf::RenderWindow& window) const;
 };
 
 #endif

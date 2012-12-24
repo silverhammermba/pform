@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
 	Block block(panel);
 
-	Pform::Level level(b_width, b_height);
+	World level(b_width, b_height);
 	level.set(0, 1, &block);
 	level.set(0, 5, &block);
 	level.set(0, 6, &block);
@@ -130,10 +130,8 @@ int main(int argc, char* argv[])
 		fps_text.setString(fps_string.str());
 
 		window.clear(gray);
-		for (unsigned int w = 0; w < b_width; w++)
-			for (unsigned int h = 0; h < b_height; h++)
-				if (level.get(w, h) != nullptr)
-					static_cast<Block*>(level.get(w, h))->draw_on(window, w * PPB, h * PPB);
+
+		level.draw_on(window);
 		player.draw_on(window);
 
 		window.setView(window.getDefaultView());
