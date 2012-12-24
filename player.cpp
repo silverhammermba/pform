@@ -3,7 +3,7 @@
 Player::Player(const sf::Texture& texture, double j, const Pform::Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk)
  : DynamicEntity(l, x, y, tvx, tvy, accx, accy, brk), sprite(texture)
 {
-	jump_speed = j;
+	jump_speed = j * PPB;
 }
 
 void Player::jump()

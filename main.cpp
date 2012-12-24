@@ -26,8 +26,8 @@ int main(int argc, char* argv[])
 	}
 
 	// window size in blocks
-	unsigned int b_width = 10;
-	unsigned int b_height = 8;
+	unsigned int b_width = 20;
+	unsigned int b_height = 20;
 
 	// window size in pixels
 	unsigned int p_width = b_width * PPB;
@@ -56,20 +56,19 @@ int main(int argc, char* argv[])
 	Block block(panel);
 
 	World level(b_width, b_height);
-	level.set(0, 1, &block);
-	level.set(0, 5, &block);
-	level.set(0, 6, &block);
-	level.set(1, 3, &block);
-	level.set(1, 5, &block);
-	level.set(1, 6, &block);
-	level.set(5, 5, &block);
-	level.set(7, 5, &block);
-	level.set(9, 5, &block);
-	level.set(9, 6, &block);
+	unsigned int h = 0;
 	for (unsigned int x = 0; x < b_width; x++)
-		level.set(x, 7, &block);
+	{
+		for (unsigned int y = 0; y < h + 1; y++)
+		{
+			level.set(x, b_height - y - 1, &block);
+		}
+		h += (rand() % 3) - 1;
+		if (h > b_height)
+			h = 0;
+	}
 
-	Player player(squid, 250, level, 8, 6, 75, 300, 300, 800, 600);
+	Player player(squid, 16, level, b_width / 2, 0, 5, 20, 20, 50, 40);
 
 	sf::Color gray(80, 80, 80);
 
