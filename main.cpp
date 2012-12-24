@@ -1,14 +1,30 @@
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include "game.hpp"
 
 using std::cerr;
 using std::endl;
 
-#define SCALE 4 // pixel scaling factor
-
-int main()
+int main(int argc, char* argv[])
 {
+	unsigned int scale = 4;
+
+	if (argc == 2)
+	{
+		std::stringstream arg;
+		arg << argv[1];
+		if (!(arg >> scale))
+		{
+			cerr << "Invalid scale '" << argv[1] << "'\n";
+			return 1;
+		}
+	}
+	else if (argc >= 3)
+	{
+		cerr << "usage: " << argv[0] << " [SCALE]\n";
+		return 1;
+	}
+
 	// window size in blocks
 	unsigned int b_width = 10;
 	unsigned int b_height = 8;
@@ -18,7 +34,7 @@ int main()
 	unsigned int p_height = b_height * PPB;
 
 	// set up window and view
-	sf::RenderWindow window(sf::VideoMode(p_width * SCALE, p_height * SCALE), "Pform", sf::Style::Titlebar);
+	sf::RenderWindow window(sf::VideoMode(p_width * scale, p_height * scale), "Pform", sf::Style::Titlebar);
 	sf::View zoom_view(sf::Vector2f(p_width / 2, p_height / 2), sf::Vector2f(p_width, p_height));
 	window.setView(zoom_view);
 
