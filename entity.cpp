@@ -82,6 +82,8 @@ void Pform::DynamicEntity::step(float seconds)
 
 void Pform::DynamicEntity::resolve_movement()
 {
+	// TODO block clipping bug when walking left off a short ledge onto flat ground
+
 	// shift amount to get leading corner
 	unsigned int corner[2] = {
 		(unsigned int)(delta[0] > 0 ? 1 : 0),
