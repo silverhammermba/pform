@@ -25,6 +25,8 @@ void Player::step(float seconds)
 {
 	DynamicEntity::step(seconds);
 
+	// TODO would like to somehow round position to pixel coordinates here, if possible
+
 	const double* pos = get_position();
 
 	sprite.setPosition(std::round(pos[0] * PPB), std::round(pos[1] * PPB));

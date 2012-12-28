@@ -74,8 +74,6 @@ void Pform::DynamicEntity::step(float seconds)
 
 void Pform::DynamicEntity::resolve_movement()
 {
-	// TODO block clipping bug when walking left off a short ledge onto flat ground
-
 	// shift amount to get leading corner
 	unsigned int corner[2] = {
 		(unsigned int)(delta[0] > 0 ? 1 : 0),
@@ -174,7 +172,8 @@ void Pform::DynamicEntity::resolve_movement()
 			if (standing && level->is_passable(get_limit(1, 0), get_limit(1, 1) + 1))
 			{
 				standing = false;
-				position[1] += 1;
+				// TODO this seems to work but is still hacky
+				position[1] += 0.001f;
 				update_relevant_region();
 				collision = true;
 			}
@@ -202,7 +201,8 @@ void Pform::DynamicEntity::resolve_movement()
 			// TODO how well does fmod actually work here?
 			if (impulse[0] != 0 && std::fmod(position[0], 1.f) == 0 && level->is_passable(get_limit(1, 0) + impulse[0], get_limit(1, 1)))
 			{
-				position[0] += impulse[0]; // TODO kinda hacky
+				// TODO this causes some kind of infinite recursion
+				position[0] += impulse[0] * 0.001f;
 				collision = true;
 			}
 		}

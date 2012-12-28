@@ -3,8 +3,8 @@
 
 #include <array>
 #include <cmath>
-#include <stdexcept>
 #include <queue>
+#include <stdexcept>
 #include "entity.hpp"
 #include "level.hpp"
 
