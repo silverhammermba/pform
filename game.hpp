@@ -7,4 +7,6 @@
 #include "player.hpp"
 #include "world.hpp"
 
+#define PPB 16 // TODO size of block in pixels, should be power of 2?
+
 #endif

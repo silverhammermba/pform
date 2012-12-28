@@ -3,7 +3,7 @@
 Player::Player(const sf::Texture& texture, double j, const Pform::Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk)
  : DynamicEntity(l, x, y, tvx, tvy, accx, accy, brk), sprite(texture)
 {
-	jump_speed = j * PPB;
+	jump_speed = j;
 }
 
 void Player::jump()
@@ -24,6 +24,8 @@ void Player::set_movement(int direction)
 void Player::step(float seconds)
 {
 	DynamicEntity::step(seconds);
+
 	const double* pos = get_position();
-	sprite.setPosition(std::round(pos[0]), std::round(pos[1]));
+
+	sprite.setPosition(std::round(pos[0] * PPB), std::round(pos[1] * PPB));
 }

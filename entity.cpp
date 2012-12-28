@@ -1,5 +1,8 @@
 #include "pform.hpp"
 
+#define CLAMP(l, x, u) x = ((x) < (l) ? (l) : ((x) > (u) ? (u) : (x)))
+#define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
+
 void reduce(double* x, double r)
 {
 	if (*x > 0)
@@ -15,10 +18,10 @@ Pform::StaticEntity::StaticEntity(bool s)
 
 // TODO make all of this PPB-independet?
 Pform::DynamicEntity::DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk)
-	: position {(double)(x * PPB), (double)(y * PPB)}, delta {0, 0}, terminal {tvx * PPB, tvy * PPB}, acceleration {accx * PPB, accy * PPB}, lower_limit(), upper_limit(), velocity {0, 0}, impulse {0, 0}
+	: position {(double)x, (double)y}, delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), velocity {0, 0}, impulse {0, 0}
 {
 	level = &l;
-	breaking = brk * PPB;
+	breaking = brk;
 	standing = false;
 
 	update_relevant_region();
@@ -35,10 +38,10 @@ unsigned int Pform::DynamicEntity::get_limit(int dir, unsigned int coord) const
 
 void Pform::DynamicEntity::update_relevant_region()
 {
-	lower_limit[0] = std::floor(position[0] / PPB);
-	lower_limit[1] = std::floor(position[1] / PPB);
-	upper_limit[0] = std::ceil(position[0] / PPB);
-	upper_limit[1] = std::ceil(position[1] / PPB);
+	lower_limit[0] = std::floor(position[0]);
+	lower_limit[1] = std::floor(position[1]);
+	upper_limit[0] = std::ceil (position[0]);
+	upper_limit[1] = std::ceil (position[1]);
 
 	if (!(level->is_passable(lower_limit[0], lower_limit[1]) && level->is_passable(lower_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], lower_limit[1])))
 		throw EntityException();
@@ -65,21 +68,6 @@ void Pform::DynamicEntity::step(float seconds)
 	delta[0] = velocity[0] * seconds;
 	delta[1] = velocity[1] * seconds;
 
-	// if not moving, set delta to round to pixel coordinates
-	if (velocity[0] == 0 && velocity[1] == 0)
-	{
-		double rounded[2] =
-		{
-			std::round(position[0]),
-			std::round(position[1])
-		};
-		if (rounded[0] != position[0] || rounded[1] != position[1])
-		{
-			delta[0] = rounded[0] - position[0];
-			delta[1] = rounded[1] - position[1];
-		}
-	}
-
 	if (delta[0] != 0 || delta[1] != 0)
 		resolve_movement();
 }
@@ -104,16 +92,16 @@ void Pform::DynamicEntity::resolve_movement()
 	{
 		if (delta[i] != 0)
 		{
-			int lower = (get_limit(multiplier[i], i) + corner[i]) * PPB * multiplier[i];
-			double upper = (position[i] + delta[i] + corner[i] * PPB) * multiplier[i];
-			for (int c = lower; c < upper; c += PPB)
+			int lower = (get_limit(multiplier[i], i) + corner[i]) * multiplier[i];
+			double upper = (position[i] + delta[i] + corner[i]) * multiplier[i];
+			for (int c = lower; c < upper; c ++)
 			{
 				std::array<double, 2> cross;
 				cross[i] = c * multiplier[i]; // remove multiplier
 				cross[1 - i] =
 					(delta[1 - i] * c * multiplier[i])               / delta[i] -
-					(delta[1 - i] * (position[i] + corner[i] * PPB)) / delta[i] +
-					(position[1 - i] + corner[1 - i] * PPB);
+					(delta[1 - i] * (position[i] + corner[i])) / delta[i] +
+					position[1 - i] + corner[1 - i];
 				crossing[i].push(cross);
 			}
 		}
@@ -159,8 +147,8 @@ void Pform::DynamicEntity::resolve_movement()
 		}
 
 		// convert from leading corner to position
-		point[0] = point[0] - corner[0] * PPB;
-		point[1] = point[1] - corner[1] * PPB;
+		point[0] = point[0] - corner[0];
+		point[1] = point[1] - corner[1];
 
 		// move to crossing, subtract from delta
 		delta[0] -= point[0] - position[0];
@@ -211,7 +199,8 @@ void Pform::DynamicEntity::resolve_movement()
 				collision = true;
 			}
 			// ledge climbing
-			if (impulse[0] != 0 && std::fmod(position[0], (double)PPB) == 0 && level->is_passable(get_limit(1, 0) + impulse[0], get_limit(1, 1)))
+			// TODO how well does fmod actually work here?
+			if (impulse[0] != 0 && std::fmod(position[0], 1.f) == 0 && level->is_passable(get_limit(1, 0) + impulse[0], get_limit(1, 1)))
 			{
 				position[0] += impulse[0]; // TODO kinda hacky
 				collision = true;

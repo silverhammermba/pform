@@ -42,10 +42,10 @@ namespace Pform
 		DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk);
 
 		const double* get_position() const { return position; }
+		const double* get_velocity() const { return velocity; }
 		unsigned int get_limit(int dir, unsigned int coord) const;
 
 		void step(float seconds); // create delta
-
 	};
 
 	class EntityException : public std::runtime_error
