@@ -1,4 +1,3 @@
-#include <iostream>
 #include "pform.hpp"
 
 void reduce(double* x, double r)
@@ -39,6 +38,9 @@ void Pform::DynamicEntity::update_relevant_region()
 	lower_limit[1] = std::floor(position[1] / PPB);
 	upper_limit[0] = std::ceil(position[0] / PPB);
 	upper_limit[1] = std::ceil(position[1] / PPB);
+
+	if (level->get(lower_limit[0], lower_limit[1]) != nullptr || level->get(lower_limit[0], upper_limit[1]) != nullptr || level->get(upper_limit[0], upper_limit[1]) != nullptr || level->get(upper_limit[0], lower_limit[1]) != nullptr)
+		throw EntityException();
 }
 
 void Pform::DynamicEntity::step(float seconds)
@@ -141,7 +143,7 @@ void Pform::DynamicEntity::resolve_movement()
 			crossing[0].pop();
 			crossing[1].pop();
 		}
-		else if (crossing[0].front()[0] * multiplier[0] < crossing[1].front()[0] * multiplier[1] || crossing[0].front()[1] * multiplier[1] < crossing[1].front()[1] * multiplier[1])
+		else if (crossing[0].front()[0] * multiplier[0] < crossing[1].front()[0] * multiplier[0] || crossing[0].front()[1] * multiplier[1] < crossing[1].front()[1] * multiplier[1])
 		{
 			type = Type::X;
 			point = crossing[0].front();
@@ -196,6 +198,7 @@ void Pform::DynamicEntity::resolve_movement()
 		// crossing Y
 		if (type == Type::Y || type == Type::Corner)
 		{
+			// if landing or hitting ceiling
 			if (level->get(get_limit(-1, 0), next[1]) != nullptr || level->get(get_limit(1, 0), next[1]) != nullptr)
 			{
 				delta[1] = 0;
@@ -205,6 +208,7 @@ void Pform::DynamicEntity::resolve_movement()
 
 				collision = true;
 			}
+			// ledge climbing
 			if (impulse[0] != 0 && std::fmod(position[0], (double)PPB) == 0 && level->get(get_limit(1, 0) + impulse[0], get_limit(1, 1)) == nullptr)
 			{
 				position[0] += impulse[0];
@@ -212,7 +216,7 @@ void Pform::DynamicEntity::resolve_movement()
 			}
 		}
 		// corner crossing
-		if (type == Type::Corner && delta[0] != 0 && delta[1] != 1)
+		if (type == Type::Corner && delta[0] != 0 && delta[1] != 0)
 		{
 			if (level->get(next[0], next[1]))
 			{

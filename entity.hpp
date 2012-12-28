@@ -45,6 +45,15 @@ namespace Pform
 		unsigned int get_limit(int dir, unsigned int coord) const;
 
 		void step(float seconds); // create delta
+
+	};
+
+	class EntityException : public std::runtime_error
+	{
+	public:
+		EntityException()
+			: std::runtime_error("Illegally overlapping entities")
+		{}
 	};
 }
 
