@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 
 	// window size in blocks
 	unsigned int b_width = 20;
-	unsigned int b_height = 20;
+	unsigned int b_height = b_width / 2;
 
 	// window size in pixels
 	unsigned int p_width = b_width * PPB;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 			h = 0;
 	}
 
-	Player player(squid, 16, level, b_width / 2, 0, 5, 20, 20, 50, 40);
+	Player player(squid, 16, level, b_width / 2, b_height / 2, 5, 20, 20, 50, 40);
 
 	sf::Color gray(80, 80, 80);
 
