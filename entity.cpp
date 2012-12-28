@@ -13,6 +13,7 @@ Pform::StaticEntity::StaticEntity(bool s)
 	solid = s;
 }
 
+// TODO make all of this PPB-independet?
 Pform::DynamicEntity::DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk)
 	: position {(double)(x * PPB), (double)(y * PPB)}, delta {0, 0}, terminal {tvx * PPB, tvy * PPB}, acceleration {accx * PPB, accy * PPB}, lower_limit(), upper_limit(), velocity {0, 0}, impulse {0, 0}
 {
@@ -39,12 +40,13 @@ void Pform::DynamicEntity::update_relevant_region()
 	upper_limit[0] = std::ceil(position[0] / PPB);
 	upper_limit[1] = std::ceil(position[1] / PPB);
 
-	if (level->get(lower_limit[0], lower_limit[1]) != nullptr || level->get(lower_limit[0], upper_limit[1]) != nullptr || level->get(upper_limit[0], upper_limit[1]) != nullptr || level->get(upper_limit[0], lower_limit[1]) != nullptr)
+	if (!(level->is_passable(lower_limit[0], lower_limit[1]) && level->is_passable(lower_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], lower_limit[1])))
 		throw EntityException();
 }
 
 void Pform::DynamicEntity::step(float seconds)
 {
+	// TODO occassionally very slow to reverse direction
 	// apply X acceleration
 	if (velocity[0] != 0 && impulse[0] * velocity[0] <= 0)
 		reduce(velocity, breaking * seconds);
@@ -181,7 +183,7 @@ void Pform::DynamicEntity::resolve_movement()
 		if (type == Type::X or type == Type::Corner)
 		{
 			// if standing and nothing underneath, fall
-			if (standing && level->get(get_limit(1, 0), get_limit(1, 1) + 1) == nullptr)
+			if (standing && level->is_passable(get_limit(1, 0), get_limit(1, 1) + 1))
 			{
 				standing = false;
 				position[1] += 1;
@@ -189,7 +191,7 @@ void Pform::DynamicEntity::resolve_movement()
 				collision = true;
 			}
 			// check for walls
-			if (level->get(next[0], get_limit(-1, 1)) || level->get(next[0], get_limit(1, 1)))
+			if (!(level->is_passable(next[0], get_limit(-1, 1))) || !(level->is_passable(next[0], get_limit(1, 1))))
 			{
 				delta[0] = 0;
 				collision = true;
@@ -199,7 +201,7 @@ void Pform::DynamicEntity::resolve_movement()
 		if (type == Type::Y || type == Type::Corner)
 		{
 			// if landing or hitting ceiling
-			if (level->get(get_limit(-1, 0), next[1]) != nullptr || level->get(get_limit(1, 0), next[1]) != nullptr)
+			if (!(level->is_passable(get_limit(-1, 0), next[1])) || !(level->is_passable(get_limit(1, 0), next[1])))
 			{
 				delta[1] = 0;
 				velocity[1] = 0;
@@ -209,18 +211,18 @@ void Pform::DynamicEntity::resolve_movement()
 				collision = true;
 			}
 			// ledge climbing
-			if (impulse[0] != 0 && std::fmod(position[0], (double)PPB) == 0 && level->get(get_limit(1, 0) + impulse[0], get_limit(1, 1)) == nullptr)
+			if (impulse[0] != 0 && std::fmod(position[0], (double)PPB) == 0 && level->is_passable(get_limit(1, 0) + impulse[0], get_limit(1, 1)))
 			{
-				position[0] += impulse[0];
+				position[0] += impulse[0]; // TODO kinda hacky
 				collision = true;
 			}
 		}
 		// corner crossing
 		if (type == Type::Corner && delta[0] != 0 && delta[1] != 0)
 		{
-			if (level->get(next[0], next[1]))
+			if (!(level->is_passable(next[0], next[1])))
 			{
-				delta[1] = 0; // TODO arbitrary placeholder
+				delta[1] = 0; // TODO arbitrary resolution
 				collision = true;
 			}
 		}
@@ -235,7 +237,7 @@ void Pform::DynamicEntity::resolve_movement()
 	update_relevant_region();
 
 	// the final movement can align, causing a fall
-	if (standing && level->get(get_limit(-1, 0), get_limit(1, 1) + 1) == nullptr && level->get(get_limit(1, 0), get_limit(1, 1) + 1) == nullptr)
+	if (standing && level->is_passable(get_limit(-1, 0), get_limit(1, 1) + 1) && level->is_passable(get_limit(1, 0), get_limit(1, 1) + 1))
 		standing = false;
 }
 

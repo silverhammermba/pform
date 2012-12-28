@@ -31,3 +31,11 @@ void Pform::Level::set(int x, int y, Pform::StaticEntity* entity)
 
 	grid[x + width * y] = entity;
 }
+
+bool Pform::Level::is_passable(int x, int y) const
+{
+	StaticEntity* ent = get(x, y);
+	if (ent != nullptr && ent->is_solid())
+		return false;
+	return true;
+}
