@@ -20,7 +20,9 @@ namespace Pform
 	class LevelException : public std::runtime_error
 	{
 	public:
-		LevelException();
+		LevelException()
+			: std::runtime_error("Invalid grid index")
+		{}
 	};
 }
 
