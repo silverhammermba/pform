@@ -25,13 +25,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	// window size in blocks
-	unsigned int b_width = 20;
-	unsigned int b_height = b_width / 2;
-
 	// window size in pixels
-	unsigned int p_width = b_width * PPB;
-	unsigned int p_height = b_height * PPB;
+	unsigned int p_width = 612;
+	unsigned int p_height = 300;
 
 	// set up window and view
 	sf::RenderWindow window(sf::VideoMode(p_width * scale, p_height * scale), "Pform", sf::Style::Titlebar);
