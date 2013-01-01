@@ -4,8 +4,10 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
+#include <list>
 #include <string>
 #include <SFML/Graphics.hpp>
+#include "input.hpp"
 #include "pform.hpp"
 #include "block.hpp"
 #include "world.hpp"

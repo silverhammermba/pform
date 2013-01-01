@@ -33,10 +33,11 @@ namespace Pform
 		double breaking; // deceleration when idle
 		void resolve_movement(); // apply delta to position
 	protected:
+		int impulse[2]; // if actively moving
+
 		void update_relevant_region(); // recompute overlapped level blocks
 	public:
 		double velocity[2];
-		int impulse[2]; // if actively moving
 		bool standing; // if the entity is on the ground
 
 		DynamicEntity(const Level& l, double tvx, double tvy, double accx, double accy, double brk);

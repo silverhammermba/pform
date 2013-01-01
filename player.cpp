@@ -9,19 +9,51 @@ Player::Player(const sf::Texture& texture, double j, World& l, double tvx, doubl
 	update_relevant_region();
 }
 
+bool Player::process_event(const sf::Event& event)
+{
+	switch(event.type)
+	{
+		case sf::Event::KeyPressed:
+			switch (event.key.code)
+			{
+				case sf::Keyboard::Left:
+					impulse[0] = -1;
+					break;
+				case sf::Keyboard::Right:
+					impulse[0] = 1;
+					break;
+				case sf::Keyboard::Up:
+					jump();
+					break;
+				default:
+					break;
+			}
+			break;
+		case sf::Event::KeyReleased:
+			switch (event.key.code)
+			{
+				case sf::Keyboard::Left:
+				case sf::Keyboard::Right:
+					impulse[0] = 0;
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}
+
+	return true;
+}
+
 void Player::jump()
 {
 	if (standing)
 	{
-		// TODO set jump power somewhere else
 		velocity[1] = -jump_speed;
 		standing = false;
 	}
-}
-
-void Player::set_movement(int direction)
-{
-	impulse[0] = direction;
 }
 
 void Player::step(float seconds)

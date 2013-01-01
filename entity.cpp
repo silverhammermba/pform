@@ -18,7 +18,7 @@ Pform::StaticEntity::StaticEntity(bool s)
 
 // TODO make all of this PPB-independet?
 Pform::DynamicEntity::DynamicEntity(const Level& l, double tvx, double tvy, double accx, double accy, double brk)
-	: delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), velocity {0, 0}, impulse {0, 0}
+	: delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), impulse {0, 0}, velocity {0, 0}
 {
 	level = &l;
 	breaking = brk;

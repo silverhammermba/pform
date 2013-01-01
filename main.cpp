@@ -5,6 +5,29 @@
 using std::cerr;
 using std::endl;
 
+class Game : public InputReader
+{
+	sf::RenderWindow* window;
+public:
+
+	Game(sf::RenderWindow* win)
+	{
+		window = win;
+	}
+
+	virtual bool process_event(const sf::Event& event)
+	{
+		if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
+		{
+			window->close();
+
+			finished = true;
+			return false;
+		}
+		return true;
+	}
+};
+
 int main(int argc, char* argv[])
 {
 	unsigned int scale = 4;
@@ -33,6 +56,8 @@ int main(int argc, char* argv[])
 	sf::RenderWindow window(sf::VideoMode(p_width * scale, p_height * scale), "Pform", sf::Style::Titlebar);
 	sf::View zoom_view(sf::Vector2f(0, 0), sf::Vector2f(p_width, p_height));
 
+	Game game(&window);
+
 	// set up text
 	sf::Font font;
 	font.loadFromFile("/usr/share/fonts/TTF/VeraMono.ttf");
@@ -54,6 +79,10 @@ int main(int argc, char* argv[])
 
 	sf::Color gray(80, 80, 80);
 
+	std::vector<InputReader*> input_readers;
+	input_readers.push_back(&game);
+	input_readers.push_back(&player);
+
 	// game loop
 	sf::Clock clock;
 	while (window.isOpen())
@@ -62,41 +91,14 @@ int main(int argc, char* argv[])
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
-			switch (event.type)
+			for (auto r = input_readers.begin(); r != input_readers.end();)
 			{
-				case sf::Event::Closed:
-					window.close();
-					break;
-				case sf::Event::KeyPressed:
-					switch (event.key.code)
-					{
-						case sf::Keyboard::Escape:
-							window.close();
-						case sf::Keyboard::Left:
-							player.set_movement(-1);
-							break;
-						case sf::Keyboard::Right:
-							player.set_movement(1);
-							break;
-						case sf::Keyboard::Up:
-							player.jump();
-							break;
-						default:
-							break;
-					}
-					break;
-				case sf::Event::KeyReleased:
-					switch (event.key.code)
-					{
-						case sf::Keyboard::Left:
-						case sf::Keyboard::Right:
-							player.set_movement(0);
-							break;
-						default:
-							break;
-					}
-					break;
-				default:
+				bool cont = (*r)->process_event(event);
+				if ((*r)->is_finished())
+					r = input_readers.erase(r);
+				else
+					r++;
+				if (!cont)
 					break;
 			}
 		}
