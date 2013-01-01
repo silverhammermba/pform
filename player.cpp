@@ -1,9 +1,12 @@
 #include "game.hpp"
 
-Player::Player(const sf::Texture& texture, double j, const Pform::Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk)
- : DynamicEntity(l, x, y, tvx, tvy, accx, accy, brk), sprite(texture)
+Player::Player(const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
+ : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture)
 {
 	jump_speed = j;
+	auto pos = l.get_next_start();
+	set_position(pos[0], pos[1]);
+	update_relevant_region();
 }
 
 void Player::jump()

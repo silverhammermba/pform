@@ -17,14 +17,18 @@ Pform::StaticEntity::StaticEntity(bool s)
 }
 
 // TODO make all of this PPB-independet?
-Pform::DynamicEntity::DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk)
-	: position {(double)x, (double)y}, delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), velocity {0, 0}, impulse {0, 0}
+Pform::DynamicEntity::DynamicEntity(const Level& l, double tvx, double tvy, double accx, double accy, double brk)
+	: delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), velocity {0, 0}, impulse {0, 0}
 {
 	level = &l;
 	breaking = brk;
 	standing = false;
+}
 
-	update_relevant_region();
+void Pform::DynamicEntity::set_position(unsigned int x, unsigned int y)
+{
+	position[0] = x;
+	position[1] = y;
 }
 
 unsigned int Pform::DynamicEntity::get_limit(int dir, unsigned int coord) const

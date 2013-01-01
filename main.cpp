@@ -49,26 +49,13 @@ int main(int argc, char* argv[])
 
 	// load textures
 	sf::Texture squid;
-	sf::Texture panel;
+	sf::Texture block_textures;
 	squid.loadFromFile("char.png");
-	panel.loadFromFile("block.png");
+	block_textures.loadFromFile("blocks.png");
 
-	Block block(panel);
+	World level("test.level", block_textures);
 
-	World level(b_width, b_height);
-	unsigned int h = 0;
-	for (unsigned int x = 0; x < b_width; x++)
-	{
-		for (unsigned int y = 0; y < h + 1; y++)
-		{
-			level.set(x, b_height - y - 1, &block);
-		}
-		h += (rand() % 3) - 1;
-		if (h > b_height)
-			h = 0;
-	}
-
-	Player player(squid, 16, level, b_width / 2, b_height / 2, 5, 20, 20, 50, 40);
+	Player player(squid, 16, level, 5, 20, 20, 50, 40);
 
 	sf::Color gray(80, 80, 80);
 

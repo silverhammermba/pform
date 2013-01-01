@@ -5,14 +5,17 @@ namespace Pform
 {
 	class Level
 	{
-		unsigned int width;
-		unsigned int height;
+	private:
+		unsigned int size[2];
+	protected:
 		std::vector<StaticEntity*> grid;
+
+		void set_size(unsigned int w, unsigned int h);
 	public:
+		Level();
 		Level(unsigned int w, unsigned int h);
 
-		unsigned int get_width() const { return width; }
-		unsigned int get_height() const { return height; }
+		const unsigned int* get_size() const { return size; }
 		StaticEntity* get(int x, int y) const;
 		bool is_passable(int x, int y) const;
 		void set(int x, int y, StaticEntity* entity);

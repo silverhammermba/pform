@@ -7,7 +7,7 @@ class Player : public Pform::DynamicEntity
 
 	double jump_speed;
 public:
-	Player(const sf::Texture& texture, double j, const Pform::Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk);
+	Player(const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk);
 	void jump();
 	void set_movement(int direction);
 	void step(float seconds);

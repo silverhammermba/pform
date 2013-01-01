@@ -9,7 +9,7 @@ source = FileList['*.cpp']
 objects = source.map { |f| f.ext(?o) }
 
 source.each do |f|
-	file f.ext(?o) => [f, 'pform.hpp'] do
+	file f.ext(?o) => [f, 'game.hpp', 'pform.hpp'] do
 		sh "#$cc #{f} -c -o #{f.ext(?o)}"
 	end
 end

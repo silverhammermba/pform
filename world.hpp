@@ -3,9 +3,14 @@
 
 class World : public Pform::Level
 {
+	unsigned int starts[4][2];
+	bool next_player = 0;
+	std::vector<Block*> blocks;
 public:
-	World(unsigned int w, unsigned int h);
-	World(std::string filename);
+	World(const std::string & filename, const sf::Texture & textures);
+	~World();
+
+	const unsigned int* get_next_start() { return starts[next_player++]; }
 
 	Block* get(int x, int y) const;
 

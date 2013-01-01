@@ -31,16 +31,17 @@ namespace Pform
 		unsigned int upper_limit[2];
 
 		double breaking; // deceleration when idle
-
-		void update_relevant_region(); // recompute overlapped level blocks
 		void resolve_movement(); // apply delta to position
+	protected:
+		void update_relevant_region(); // recompute overlapped level blocks
 	public:
 		double velocity[2];
 		int impulse[2]; // if actively moving
 		bool standing; // if the entity is on the ground
 
-		DynamicEntity(const Level& l, int x, int y, double tvx, double tvy, double accx, double accy, double brk);
+		DynamicEntity(const Level& l, double tvx, double tvy, double accx, double accy, double brk);
 
+		void set_position(unsigned int x, unsigned int y);
 		const double* get_position() const { return position; }
 		const double* get_velocity() const { return velocity; }
 		unsigned int get_limit(int dir, unsigned int coord) const;
