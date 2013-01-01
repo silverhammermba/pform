@@ -35,8 +35,7 @@ int main(int argc, char* argv[])
 
 	// set up window and view
 	sf::RenderWindow window(sf::VideoMode(p_width * scale, p_height * scale), "Pform", sf::Style::Titlebar);
-	sf::View zoom_view(sf::Vector2f(p_width / 2, p_height / 2), sf::Vector2f(p_width, p_height));
-	window.setView(zoom_view);
+	sf::View zoom_view(sf::Vector2f(0, 0), sf::Vector2f(p_width, p_height));
 
 	// set up text
 	sf::Font font;
@@ -111,6 +110,11 @@ int main(int argc, char* argv[])
 
 		player.step(time);
 
+		auto pos = player.get_sprite_position();
+
+		zoom_view.setCenter(pos.x, pos.y);
+		window.setView(zoom_view);
+
 		fps_string.str("");
 		fps_string << (unsigned int)(1 / time);
 		fps_text.setString(fps_string.str());
@@ -122,7 +126,6 @@ int main(int argc, char* argv[])
 
 		window.setView(window.getDefaultView());
 		window.draw(fps_text);
-		window.setView(zoom_view);
 
 		window.display();
 	}

@@ -8,6 +8,7 @@ class Player : public Pform::DynamicEntity
 	double jump_speed;
 public:
 	Player(const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk);
+	sf::Vector2f get_sprite_position() const { return sprite.getPosition(); };
 	void jump();
 	void set_movement(int direction);
 	void step(float seconds);
