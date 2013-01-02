@@ -5,14 +5,17 @@
 using std::cerr;
 using std::endl;
 
+// class for handling game-related events
 class Game : public InputReader
 {
 	sf::RenderWindow* window;
+	std::vector<InputReader*>* input_readers;
 public:
 
-	Game(sf::RenderWindow* win)
+	Game(sf::RenderWindow* win, std::vector<InputReader*>* ir)
 	{
 		window = win;
+		input_readers = ir;
 	}
 
 	virtual bool process_event(const sf::Event& event)
@@ -24,12 +27,17 @@ public:
 			finished = true;
 			return false;
 		}
+		if (event.type == sf::Event::JoystickButtonReleased)
+		{
+			cerr << event.joystickButton.button << "\n";
+		}
 		return true;
 	}
 };
 
 int main(int argc, char* argv[])
 {
+	// parse arguments
 	unsigned int scale = 4;
 
 	if (argc == 2)
@@ -56,8 +64,6 @@ int main(int argc, char* argv[])
 	sf::RenderWindow window(sf::VideoMode(p_width * scale, p_height * scale), "Pform", sf::Style::Titlebar);
 	sf::View zoom_view(sf::Vector2f(0, 0), sf::Vector2f(p_width, p_height));
 
-	Game game(&window);
-
 	// set up text
 	sf::Font font;
 	font.loadFromFile("/usr/share/fonts/TTF/VeraMono.ttf");
@@ -80,6 +86,9 @@ int main(int argc, char* argv[])
 	sf::Color gray(80, 80, 80);
 
 	std::vector<InputReader*> input_readers;
+
+	Game game(&window, &input_readers);
+
 	input_readers.push_back(&game);
 	input_readers.push_back(&player);
 

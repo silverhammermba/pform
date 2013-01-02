@@ -57,7 +57,8 @@ World::World(const std::string & filename, const sf::Texture & textures)
 		set_size(width, height);
 		grid.resize(width * height, nullptr);
 
-		unsigned int players = 0;
+		players = 0;
+		next_player = 0;
 		bool start_set[4] = {false, false, false, false};
 
 		// create blocks, player starts
@@ -113,6 +114,13 @@ World::~World()
 Block* World::get(int x, int y) const
 {
 	return static_cast<Block*>(Pform::Level::get(x, y));
+}
+
+const unsigned int* World::get_next_start()
+{
+	if (next_player >= players)
+		throw std::runtime_error("Level player limit exceeded");
+	return starts[next_player++];
 }
 
 void World::draw_on(sf::RenderWindow& window) const
