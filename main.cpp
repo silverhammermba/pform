@@ -10,12 +10,13 @@ class Game : public InputReader
 {
 	sf::RenderWindow* window;
 	std::vector<InputReader*>* input_readers;
+	int* new_player;
 public:
 
-	Game(sf::RenderWindow* win, std::vector<InputReader*>* ir)
+	Game(sf::RenderWindow* win, int* np)
 	{
 		window = win;
-		input_readers = ir;
+		new_player = np;
 	}
 
 	virtual bool process_event(const sf::Event& event)
@@ -27,10 +28,8 @@ public:
 			finished = true;
 			return false;
 		}
-		if (event.type == sf::Event::JoystickButtonReleased)
-		{
-			cerr << event.joystickButton.button << "\n";
-		}
+		if (event.type == sf::Event::JoystickButtonReleased && event.joystickButton.button == 7)
+			*new_player = event.joystickButton.joystickId;
 		return true;
 	}
 };
@@ -81,16 +80,17 @@ int main(int argc, char* argv[])
 
 	World level("test.level", block_textures);
 
-	Player player(squid, 16, level, 5, 20, 20, 50, 40);
+	std::vector<Player> players;
 
 	sf::Color gray(80, 80, 80);
 
 	std::vector<InputReader*> input_readers;
 
-	Game game(&window, &input_readers);
+	int new_player = -1;
+
+	Game game(&window, &new_player);
 
 	input_readers.push_back(&game);
-	input_readers.push_back(&player);
 
 	// game loop
 	sf::Clock clock;
@@ -112,14 +112,24 @@ int main(int argc, char* argv[])
 			}
 		}
 
+		if (new_player >= 0)
+		{
+			players.push_back(Player(event.joystickButton.joystickId, squid, 16, level, 5, 20, 20, 50, 40));
+			input_readers.push_back(&players.back());
+			new_player = -1;
+		}
+
 		float time = clock.getElapsedTime().asSeconds();
 		clock.restart();
 
-		player.step(time);
+		for (auto player = players.begin(); player != players.end(); player++)
+		{
+			player->step(time);
+			auto pos = player->get_sprite_position();
+			// TODO get average view or something
+			zoom_view.setCenter(pos.x, pos.y);
+		}
 
-		auto pos = player.get_sprite_position();
-
-		zoom_view.setCenter(pos.x, pos.y);
 		window.setView(zoom_view);
 
 		fps_string.str("");
@@ -129,7 +139,8 @@ int main(int argc, char* argv[])
 		window.clear(gray);
 
 		level.draw_on(window);
-		player.draw_on(window);
+		for (auto player = players.begin(); player != players.end(); player++)
+			player->draw_on(window);
 
 		window.setView(window.getDefaultView());
 		window.draw(fps_text);

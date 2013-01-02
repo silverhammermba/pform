@@ -1,8 +1,10 @@
 #include "game.hpp"
+#include <iostream>
 
-Player::Player(const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
+Player::Player(unsigned int joy, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
  : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture)
 {
+	joystick = joy;
 	jump_speed = j;
 	auto pos = l.get_next_start();
 	set_position(pos[0], pos[1]);
@@ -11,6 +13,12 @@ Player::Player(const sf::Texture& texture, double j, World& l, double tvx, doubl
 
 bool Player::process_event(const sf::Event& event)
 {
+	if (event.type == sf::Event::JoystickButtonPressed && event.joystickButton.joystickId == joystick)
+	{
+		if (event.joystickButton.button == 0)
+			jump();
+	}
+
 	switch(event.type)
 	{
 		case sf::Event::KeyPressed:
