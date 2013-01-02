@@ -4,8 +4,9 @@
 class Player : public Pform::DynamicEntity, public InputReader
 {
 	sf::Sprite sprite;
-	unsigned int joystick;
+	unsigned int joystick; // joystick number
 	double jump_speed;
+	float axis[2]; // joystick position
 public:
 	Player(unsigned int joy, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk);
 	virtual bool process_event(const sf::Event& event);

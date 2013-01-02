@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 
 	World level("test.level", block_textures);
 
-	std::vector<Player> players;
+	std::vector<Player*> players;
 
 	sf::Color gray(80, 80, 80);
 
@@ -114,8 +114,9 @@ int main(int argc, char* argv[])
 
 		if (new_player >= 0)
 		{
-			players.push_back(Player(event.joystickButton.joystickId, squid, 16, level, 5, 20, 20, 50, 40));
-			input_readers.push_back(&players.back());
+			Player* player = new Player(event.joystickButton.joystickId, squid, 16, level, 5, 20, 20, 50, 40);
+			players.push_back(player);
+			input_readers.push_back(player);
 			new_player = -1;
 		}
 
@@ -124,8 +125,8 @@ int main(int argc, char* argv[])
 
 		for (auto player = players.begin(); player != players.end(); player++)
 		{
-			player->step(time);
-			auto pos = player->get_sprite_position();
+			(*player)->step(time);
+			auto pos = (*player)->get_sprite_position();
 			// TODO get average view or something
 			zoom_view.setCenter(pos.x, pos.y);
 		}
@@ -140,13 +141,16 @@ int main(int argc, char* argv[])
 
 		level.draw_on(window);
 		for (auto player = players.begin(); player != players.end(); player++)
-			player->draw_on(window);
+			(*player)->draw_on(window);
 
 		window.setView(window.getDefaultView());
 		window.draw(fps_text);
 
 		window.display();
 	}
+
+	for (auto player = players.begin(); player != players.end(); player++)
+		delete *player;
 
 	return 0;
 }

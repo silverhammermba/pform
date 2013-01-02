@@ -1,8 +1,10 @@
 #include "game.hpp"
 #include <iostream>
 
+#define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
+
 Player::Player(unsigned int joy, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
- : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture)
+ : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), axis {0, 0}
 {
 	joystick = joy;
 	jump_speed = j;
@@ -17,6 +19,11 @@ bool Player::process_event(const sf::Event& event)
 	{
 		if (event.joystickButton.button == 0)
 			jump();
+	}
+	else if (event.type == sf::Event::JoystickMoved && event.joystickMove.joystickId == joystick)
+	{
+		if (event.joystickMove.axis < 2)
+			axis[event.joystickMove.axis] = event.joystickMove.position;
 	}
 
 	switch(event.type)
@@ -66,6 +73,12 @@ void Player::jump()
 
 void Player::step(float seconds)
 {
+	// TODO update impulse, acceleration from axis
+	if (axis[0] > 20 || axis[0] < -20)
+		impulse[0] = SIGN(axis[0]);
+	else
+		impulse[0] = 0;
+
 	DynamicEntity::step(seconds);
 
 	// TODO would like to somehow round position to pixel coordinates here, if possible
