@@ -73,9 +73,13 @@ int main(int argc, char* argv[])
 	fps_text.setColor(sf::Color::Black);
 
 	// load textures
-	sf::Texture squid;
+	sf::Texture player_textures[4];
+	player_textures[0].loadFromFile("char0.png");
+	player_textures[1].loadFromFile("char1.png");
+	player_textures[2].loadFromFile("char2.png");
+	player_textures[3].loadFromFile("char3.png");
+
 	sf::Texture block_textures;
-	squid.loadFromFile("char.png");
 	block_textures.loadFromFile("blocks.png");
 
 	World level("test.level", block_textures);
@@ -114,7 +118,7 @@ int main(int argc, char* argv[])
 
 		if (new_player >= 0)
 		{
-			Player* player = new Player(event.joystickButton.joystickId, squid, 16, level, 5, 20, 20, 50, 40);
+			Player* player = new Player(event.joystickButton.joystickId, player_textures[players.size()], 16, level, 5, 20, 20, 50, 40);
 			players.push_back(player);
 			input_readers.push_back(player);
 			new_player = -1;
