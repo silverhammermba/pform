@@ -1,6 +1,7 @@
 #include "game.hpp"
 #include <iostream>
 
+#define CLAMP(l, x, u) ((x) < (l) ? (l) : ((x) > (u) ? (u) : (x)))
 #define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
 
 Player::Player(unsigned int joy, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
@@ -73,6 +74,9 @@ void Player::jump()
 
 void Player::step(float seconds)
 {
+	auto color = sprite.getColor();
+	sprite.setColor(sf::Color(CLAMP(0, color.r + 200 * seconds, 255), CLAMP(0, color.g + 200 * seconds, 255), CLAMP(0, color.b + 200 * seconds, 255)));
+
 	// TODO update impulse, acceleration from axis
 	if (axis[0] > 20 || axis[0] < -20)
 		impulse[0] = SIGN(axis[0]);
@@ -86,4 +90,9 @@ void Player::step(float seconds)
 	const double* pos = get_position();
 
 	sprite.setPosition(std::round(pos[0] * PPB), std::round(pos[1] * PPB));
+}
+
+void Player::damage()
+{
+	sprite.setColor(sf::Color(255, 0, 0));
 }

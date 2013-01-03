@@ -56,8 +56,9 @@ int main(int argc, char* argv[])
 	}
 
 	// window size in pixels
-	unsigned int p_width = 612;
-	unsigned int p_height = 300;
+	// TODO
+	unsigned int p_width = 1024 / scale;
+	unsigned int p_height = 600 / scale;
 
 	// set up window and view
 	sf::RenderWindow window(sf::VideoMode(p_width * scale, p_height * scale), "Pform", sf::Style::Titlebar);
@@ -127,12 +128,67 @@ int main(int argc, char* argv[])
 		float time = clock.getElapsedTime().asSeconds();
 		clock.restart();
 
+		sf::Vector2f pos(0, 0);
+
 		for (auto player = players.begin(); player != players.end(); player++)
 		{
 			(*player)->step(time);
-			auto pos = (*player)->get_sprite_position();
-			// TODO get average view or something
-			zoom_view.setCenter(pos.x, pos.y);
+			pos += (*player)->get_sprite_position();
+		}
+
+		if (players.size() > 0)
+		{
+			pos.x = std::round(pos.x / players.size());
+			pos.y = std::round(pos.y / players.size());
+		}
+
+		zoom_view.setCenter(pos.x, pos.y);
+
+		// check all pairs of players for jumps
+		for (auto p1 = players.begin(); p1 != players.end(); p1++)
+		{
+			auto r1 = (*p1)->get_sprite_bounds();
+			for (auto p2 = p1 + 1; p2 != players.end(); p2++)
+			{
+				auto r2 = (*p2)->get_sprite_bounds();
+
+				// if the sprites intersect
+				if (r1.intersects(r2))
+				{
+					auto pos1 = (*p1)->get_position();
+					auto pos2 = (*p2)->get_position();
+
+					// if same height, skip it
+					if (pos1[1] == pos2[1])
+						continue;
+
+					// find higher player, swap pos if necessary
+					Player* higher;
+					Player* lower;
+					if (pos1[1] < pos2[1])
+					{
+						higher = *p1;
+						lower = *p2;
+					}
+					else
+					{
+						auto temp = pos1;
+						pos1 = pos2;
+						pos2 = temp;
+						higher = *p2;
+						lower = *p1;
+					}
+
+					auto vel1 = higher->get_velocity();
+
+					// skip if higher player is not moving downwards
+					if (vel1[1] <= 0)
+						continue;
+
+					if (std::fabs(pos1[0] - pos2[0]) < 0.5 && pos2[1] - pos1[1] > 0.5)
+						lower->damage();
+				}
+			}
 		}
 
 		window.setView(zoom_view);

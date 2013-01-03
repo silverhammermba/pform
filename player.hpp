@@ -10,9 +10,11 @@ class Player : public Pform::DynamicEntity, public InputReader
 public:
 	Player(unsigned int joy, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk);
 	virtual bool process_event(const sf::Event& event);
-	sf::Vector2f get_sprite_position() const { return sprite.getPosition(); };
+	sf::Vector2f get_sprite_position() const { return sprite.getPosition(); }
+	sf::FloatRect get_sprite_bounds() const { return sprite.getGlobalBounds(); }
 	void jump();
 	void step(float seconds);
+	void damage();
 	void draw_on(sf::RenderWindow& window) { window.draw(sprite); }
 };
 
