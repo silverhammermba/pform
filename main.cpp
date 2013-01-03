@@ -29,13 +29,9 @@ public:
 			return false;
 		}
 		if (event.type == sf::Event::JoystickButtonReleased && event.joystickButton.button == 7)
-		{
 			*new_player = event.joystickButton.joystickId;
-		}
 		else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Return)
-		{
 			*new_player = 10;
-		}
 		return true;
 	}
 };
@@ -196,9 +192,7 @@ int main(int argc, char* argv[])
 
 					// if same height, skip it
 					if (pos1[1] == pos2[1])
-					{
 						continue;
-					}
 
 					// find higher player, swap pos if necessary
 					Player* higher;

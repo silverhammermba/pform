@@ -1,4 +1,5 @@
 #include "pform.hpp"
+#include <iostream>
 
 #define CLAMP(l, x, u) x = ((x) < (l) ? (l) : ((x) > (u) ? (u) : (x)))
 #define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
@@ -47,17 +48,21 @@ void Pform::DynamicEntity::update_relevant_region()
 	upper_limit[0] = std::ceil (position[0]);
 	upper_limit[1] = std::ceil (position[1]);
 
-	//if (!(level->is_passable(lower_limit[0], lower_limit[1]) && level->is_passable(lower_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], lower_limit[1])))
-		//throw EntityException();
+	/*
+	if (!(level->is_passable(lower_limit[0], lower_limit[1]) && level->is_passable(lower_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], lower_limit[1])))
+		throw EntityException();
+	*/
 }
 
 void Pform::DynamicEntity::step(float seconds)
 {
-	// TODO occassionally very slow to reverse direction
 	// apply X acceleration
-	if (velocity[0] != 0 && impulse[0] * velocity[0] <= 0)
-		reduce(velocity, breaking * seconds);
-	else // velocity[0] == 0 or impulse[0] * velocity[0] > 0
+	if (impulse[0] == 0)
+	{
+		if (velocity[0] != 0)
+			reduce(&velocity[0], breaking * seconds);
+	}
+	else
 		velocity[0] += impulse[0] * acceleration[0] * seconds;
 
 	// apply Y acceleration
@@ -206,7 +211,7 @@ void Pform::DynamicEntity::resolve_movement()
 			if (impulse[0] != 0 && std::fmod(position[0], 1.f) == 0 && level->is_passable(get_limit(1, 0) + impulse[0], get_limit(1, 1)))
 			{
 				// TODO this causes some kind of infinite recursion
-				position[0] += impulse[0] * 0.001f;
+				position[0] += impulse[0] * 0.01f;
 				collision = true;
 			}
 		}

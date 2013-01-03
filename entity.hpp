@@ -33,7 +33,7 @@ namespace Pform
 		double breaking; // deceleration when idle
 		void resolve_movement(); // apply delta to position
 	protected:
-		int impulse[2]; // if actively moving
+		double impulse[2]; // if actively moving
 
 		void update_relevant_region(); // recompute overlapped level blocks
 	public:

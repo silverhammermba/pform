@@ -5,9 +5,8 @@
 #define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
 
 Player::Player(unsigned int joy, bool kbd, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
- : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), axis {0, 0}
+ : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), axis {0, 0}, keys {false, false}
 {
-	std::cerr << "New joystick: " << joy << "\n";
 	keyboard = kbd;
 	joystick = joy;
 	jump_speed = j;
@@ -25,13 +24,13 @@ bool Player::process_event(const sf::Event& event)
 			case sf::Event::KeyPressed:
 				switch (event.key.code)
 				{
-					case sf::Keyboard::Left:
-						impulse[0] = -1;
+					case sf::Keyboard::A:
+						keys[0] = true;
 						break;
-					case sf::Keyboard::Right:
-						impulse[0] = 1;
+					case sf::Keyboard::D:
+						keys[1] = true;
 						break;
-					case sf::Keyboard::Up:
+					case sf::Keyboard::W:
 						jump();
 						break;
 					default:
@@ -41,9 +40,11 @@ bool Player::process_event(const sf::Event& event)
 			case sf::Event::KeyReleased:
 				switch (event.key.code)
 				{
-					case sf::Keyboard::Left:
-					case sf::Keyboard::Right:
-						impulse[0] = 0;
+					case sf::Keyboard::A:
+						keys[0] = false;
+						break;
+					case sf::Keyboard::D:
+						keys[1] = false;
 						break;
 					default:
 						break;
@@ -84,11 +85,23 @@ void Player::step(float seconds)
 	auto color = sprite.getColor();
 	sprite.setColor(sf::Color(CLAMP(0, color.r + 200 * seconds, 255), CLAMP(0, color.g + 200 * seconds, 255), CLAMP(0, color.b + 200 * seconds, 255)));
 
-	// TODO update impulse, acceleration from axis
-	if (!keyboard)
+	if (keyboard)
 	{
-		if (axis[0] > 20 || axis[0] < -20)
-			impulse[0] = SIGN(axis[0]);
+		// TODO this is a kinda naive way to handle this
+		if (keys[0])
+			impulse[0] = -1;
+		else if (keys[1])
+			impulse[0] = 1;
+		else
+			impulse[0] = 0;
+	}
+	else
+	{
+		if (std::fabs(axis[0]) > 20)
+		{
+			impulse[0] = CLAMP(-80, impulse[0], 80) - 20;
+			impulse[0] = axis[0] / 60;
+		}
 		else
 			impulse[0] = 0;
 	}

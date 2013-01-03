@@ -8,6 +8,7 @@ class Player : public Pform::DynamicEntity, public InputReader
 	double jump_speed;
 	bool keyboard;
 	float axis[2]; // joystick position
+	bool keys[2];
 public:
 	Player(unsigned int joy, bool kbd, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk);
 	virtual bool process_event(const sf::Event& event);
