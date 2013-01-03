@@ -7,6 +7,7 @@
 Player::Player(unsigned int joy, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
  : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), axis {0, 0}
 {
+	std::cerr << "New joystick: " << joy << "\n";
 	joystick = joy;
 	jump_speed = j;
 	auto pos = l.get_next_start();

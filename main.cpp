@@ -29,7 +29,10 @@ public:
 			return false;
 		}
 		if (event.type == sf::Event::JoystickButtonReleased && event.joystickButton.button == 7)
+		{
 			*new_player = event.joystickButton.joystickId;
+			cerr << "New player: " << event.joystickButton.joystickId << "\n";
+		}
 		return true;
 	}
 };
@@ -119,10 +122,23 @@ int main(int argc, char* argv[])
 
 		if (new_player >= 0)
 		{
-			Player* player = new Player(event.joystickButton.joystickId, player_textures[players.size()], 16, level, 5, 20, 20, 50, 40);
-			players.push_back(player);
-			input_readers.push_back(player);
-			new_player = -1;
+			bool taken = false;
+			for (auto player = players.begin(); player != players.end(); player++)
+			{
+				if ((int)((*player)->get_joystick()) == new_player)
+				{
+					taken = true;
+					break;
+				}
+			}
+
+			if (!taken)
+			{
+				Player* player = new Player(event.joystickButton.joystickId, player_textures[players.size()], 16, level, 5, 20, 20, 50, 40);
+				players.push_back(player);
+				input_readers.push_back(player);
+				new_player = -1;
+			}
 		}
 
 		float time = clock.getElapsedTime().asSeconds();
@@ -158,9 +174,28 @@ int main(int argc, char* argv[])
 					auto pos1 = (*p1)->get_position();
 					auto pos2 = (*p2)->get_position();
 
+					double abs[2] = {
+						std::fabs(pos1[0] - pos2[0]),
+						std::fabs(pos1[1] - pos2[1]),
+					};
+
+					double nudge = (1 - abs[0]) * 5;
+					if (pos1[0] <= pos2[0])
+					{
+						(*p1)->velocity[0] -= nudge;
+						(*p2)->velocity[0] += nudge;
+					}
+					else
+					{
+						(*p1)->velocity[0] += nudge;
+						(*p2)->velocity[0] -= nudge;
+					}
+
 					// if same height, skip it
 					if (pos1[1] == pos2[1])
+					{
 						continue;
+					}
 
 					// find higher player, swap pos if necessary
 					Player* higher;
@@ -185,8 +220,12 @@ int main(int argc, char* argv[])
 					if (vel1[1] <= 0)
 						continue;
 
-					if (std::fabs(pos1[0] - pos2[0]) < 0.5 && pos2[1] - pos1[1] > 0.5)
+					if (abs[0] < 0.5 && abs[1] > 0.75)
+					{
+						// TODO set jump power properly
+						higher->velocity[1] = -16;
 						lower->damage();
+					}
 				}
 			}
 		}

@@ -12,6 +12,7 @@ public:
 	virtual bool process_event(const sf::Event& event);
 	sf::Vector2f get_sprite_position() const { return sprite.getPosition(); }
 	sf::FloatRect get_sprite_bounds() const { return sprite.getGlobalBounds(); }
+	unsigned int get_joystick() const { return joystick; }
 	void jump();
 	void step(float seconds);
 	void damage();
