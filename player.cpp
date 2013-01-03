@@ -108,11 +108,18 @@ void Player::step(float seconds)
 
 	DynamicEntity::step(seconds);
 
-	// TODO would like to somehow round position to pixel coordinates here, if possible
+	// if standing and not moving and close to a block position
+	if (standing && velocity[0] == 0 && velocity[1] == 0 && std::fabs(position[0] * PPB - std::round(position[0]) * PPB) < 1)
+	{
+		// round to nearest block coords
+		position[0] = std::round(position[0]);
+		update_relevant_region();
+		// TODO hacky way to make player fall
+		if (level->is_passable(get_limit(1, 0), get_limit(1, 1) + 1))
+			standing = false;
+	}
 
-	const double* pos = get_position();
-
-	sprite.setPosition(std::round(pos[0] * PPB), std::round(pos[1] * PPB));
+	sprite.setPosition(std::round(position[0] * PPB), std::round(position[1] * PPB));
 }
 
 void Player::damage()

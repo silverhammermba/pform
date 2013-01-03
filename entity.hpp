@@ -20,9 +20,6 @@ namespace Pform
 			X, Y, Corner
 		};
 
-		const Level* level;
-
-		double position[2];
 		double delta[2]; // amount left to move
 		double terminal[2]; // terminal velocities
 		double acceleration[2]; // from movement and gravity
@@ -33,12 +30,15 @@ namespace Pform
 		double breaking; // deceleration when idle
 		void resolve_movement(); // apply delta to position
 	protected:
+		const Level* level;
+
+		double position[2];
 		double impulse[2]; // if actively moving
+		bool standing; // if the entity is on the ground
 
 		void update_relevant_region(); // recompute overlapped level blocks
 	public:
 		double velocity[2];
-		bool standing; // if the entity is on the ground
 
 		DynamicEntity(const Level& l, double tvx, double tvy, double accx, double accy, double brk);
 

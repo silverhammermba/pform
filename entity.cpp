@@ -83,6 +83,13 @@ void Pform::DynamicEntity::step(float seconds)
 
 void Pform::DynamicEntity::resolve_movement()
 {
+	/*
+	 * TODO overlapping can occur in this case
+	 * XP
+	 * XX
+	 * when jumping and moving left
+	 */
+
 	// shift amount to get leading corner
 	unsigned int corner[2] = {
 		(unsigned int)(delta[0] > 0 ? 1 : 0),
