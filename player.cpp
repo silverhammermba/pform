@@ -4,10 +4,11 @@
 #define CLAMP(l, x, u) ((x) < (l) ? (l) : ((x) > (u) ? (u) : (x)))
 #define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
 
-Player::Player(unsigned int joy, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
+Player::Player(unsigned int joy, bool kbd, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
  : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), axis {0, 0}
 {
 	std::cerr << "New joystick: " << joy << "\n";
+	keyboard = kbd;
 	joystick = joy;
 	jump_speed = j;
 	auto pos = l.get_next_start();
@@ -17,48 +18,53 @@ Player::Player(unsigned int joy, const sf::Texture& texture, double j, World& l,
 
 bool Player::process_event(const sf::Event& event)
 {
-	if (event.type == sf::Event::JoystickButtonPressed && event.joystickButton.joystickId == joystick)
+	if (keyboard)
 	{
-		if (event.joystickButton.button == 0)
-			jump();
+		switch(event.type)
+		{
+			case sf::Event::KeyPressed:
+				switch (event.key.code)
+				{
+					case sf::Keyboard::Left:
+						impulse[0] = -1;
+						break;
+					case sf::Keyboard::Right:
+						impulse[0] = 1;
+						break;
+					case sf::Keyboard::Up:
+						jump();
+						break;
+					default:
+						break;
+				}
+				break;
+			case sf::Event::KeyReleased:
+				switch (event.key.code)
+				{
+					case sf::Keyboard::Left:
+					case sf::Keyboard::Right:
+						impulse[0] = 0;
+						break;
+					default:
+						break;
+				}
+				break;
+			default:
+				break;
+		}
 	}
-	else if (event.type == sf::Event::JoystickMoved && event.joystickMove.joystickId == joystick)
+	else
 	{
-		if (event.joystickMove.axis < 2)
-			axis[event.joystickMove.axis] = event.joystickMove.position;
-	}
-
-	switch(event.type)
-	{
-		case sf::Event::KeyPressed:
-			switch (event.key.code)
-			{
-				case sf::Keyboard::Left:
-					impulse[0] = -1;
-					break;
-				case sf::Keyboard::Right:
-					impulse[0] = 1;
-					break;
-				case sf::Keyboard::Up:
-					jump();
-					break;
-				default:
-					break;
-			}
-			break;
-		case sf::Event::KeyReleased:
-			switch (event.key.code)
-			{
-				case sf::Keyboard::Left:
-				case sf::Keyboard::Right:
-					impulse[0] = 0;
-					break;
-				default:
-					break;
-			}
-			break;
-		default:
-			break;
+		if (event.type == sf::Event::JoystickButtonPressed && event.joystickButton.joystickId == joystick)
+		{
+			if (event.joystickButton.button == 0)
+				jump();
+		}
+		else if (event.type == sf::Event::JoystickMoved && event.joystickMove.joystickId == joystick)
+		{
+			if (event.joystickMove.axis < 2)
+				axis[event.joystickMove.axis] = event.joystickMove.position;
+		}
 	}
 
 	return true;
@@ -79,10 +85,13 @@ void Player::step(float seconds)
 	sprite.setColor(sf::Color(CLAMP(0, color.r + 200 * seconds, 255), CLAMP(0, color.g + 200 * seconds, 255), CLAMP(0, color.b + 200 * seconds, 255)));
 
 	// TODO update impulse, acceleration from axis
-	if (axis[0] > 20 || axis[0] < -20)
-		impulse[0] = SIGN(axis[0]);
-	else
-		impulse[0] = 0;
+	if (!keyboard)
+	{
+		if (axis[0] > 20 || axis[0] < -20)
+			impulse[0] = SIGN(axis[0]);
+		else
+			impulse[0] = 0;
+	}
 
 	DynamicEntity::step(seconds);
 

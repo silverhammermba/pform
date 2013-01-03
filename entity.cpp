@@ -47,8 +47,8 @@ void Pform::DynamicEntity::update_relevant_region()
 	upper_limit[0] = std::ceil (position[0]);
 	upper_limit[1] = std::ceil (position[1]);
 
-	if (!(level->is_passable(lower_limit[0], lower_limit[1]) && level->is_passable(lower_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], lower_limit[1])))
-		throw EntityException();
+	//if (!(level->is_passable(lower_limit[0], lower_limit[1]) && level->is_passable(lower_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], lower_limit[1])))
+		//throw EntityException();
 }
 
 void Pform::DynamicEntity::step(float seconds)
