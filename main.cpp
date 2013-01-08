@@ -10,13 +10,11 @@ class Game : public InputReader
 {
 	sf::RenderWindow* window;
 	std::vector<InputReader*>* input_readers;
-	int* new_player;
 public:
 
-	Game(sf::RenderWindow* win, int* np)
+	Game(sf::RenderWindow* win)
 	{
 		window = win;
-		new_player = np;
 	}
 
 	virtual bool process_event(const sf::Event& event)
@@ -28,10 +26,6 @@ public:
 			finished = true;
 			return false;
 		}
-		if (event.type == sf::Event::JoystickButtonReleased && event.joystickButton.button == 7)
-			*new_player = event.joystickButton.joystickId;
-		else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Return)
-			*new_player = 10;
 		return true;
 	}
 };
@@ -76,28 +70,23 @@ int main(int argc, char* argv[])
 	fps_text.setColor(sf::Color::Black);
 
 	// load textures
-	sf::Texture player_textures[4];
-	player_textures[0].loadFromFile("char0.png");
-	player_textures[1].loadFromFile("char1.png");
-	player_textures[2].loadFromFile("char2.png");
-	player_textures[3].loadFromFile("char3.png");
+	sf::Texture zero_texture;
+	zero_texture.loadFromFile("sheet.png");
 
 	sf::Texture block_textures;
-	block_textures.loadFromFile("blocks.png");
+	block_textures.loadFromFile("panels.png");
 
-	World level("test.level", block_textures);
+	World level("1.level", block_textures);
 
-	std::vector<Player*> players;
-
-	sf::Color gray(80, 80, 80);
+	sf::Color background(23, 36, 76);
 
 	std::vector<InputReader*> input_readers;
+	Player player(0, false, zero_texture, 16, level, 5, 20, 20, 50, 40);
 
-	int new_player = -1;
-
-	Game game(&window, &new_player);
+	Game game(&window);
 
 	input_readers.push_back(&game);
+	input_readers.push_back(&player);
 
 	// game loop
 	sf::Clock clock;
@@ -119,46 +108,17 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		if (new_player >= 0)
-		{
-			bool taken = false;
-			for (auto player = players.begin(); player != players.end(); player++)
-			{
-				if ((int)((*player)->get_joystick()) == new_player)
-				{
-					taken = true;
-					break;
-				}
-			}
-
-			if (!taken)
-			{
-				Player* player = new Player(new_player, new_player == 10, player_textures[players.size()], 16, level, 5, 20, 20, 50, 40);
-				players.push_back(player);
-				input_readers.push_back(player);
-			}
-			new_player = -1;
-		}
-
 		float time = clock.getElapsedTime().asSeconds();
 		clock.restart();
 
 		sf::Vector2f pos(0, 0);
 
-		for (auto player = players.begin(); player != players.end(); player++)
-		{
-			(*player)->step(time);
-			pos += (*player)->get_sprite_position();
-		}
-
-		if (players.size() > 0)
-		{
-			pos.x = std::round(pos.x / players.size());
-			pos.y = std::round(pos.y / players.size());
-		}
+		player.step(time);
+		pos += player.get_sprite_position();
 
 		zoom_view.setCenter(pos.x, pos.y);
 
+		/*
 		// check all pairs of players for jumps
 		for (auto p1 = players.begin(); p1 != players.end(); p1++)
 		{
@@ -226,6 +186,7 @@ int main(int argc, char* argv[])
 				}
 			}
 		}
+		*/
 
 		window.setView(zoom_view);
 
@@ -233,20 +194,16 @@ int main(int argc, char* argv[])
 		fps_string << (unsigned int)(1 / time);
 		fps_text.setString(fps_string.str());
 
-		window.clear(gray);
+		window.clear(background);
 
 		level.draw_on(window);
-		for (auto player = players.begin(); player != players.end(); player++)
-			(*player)->draw_on(window);
+		player.draw_on(window);
 
 		window.setView(window.getDefaultView());
 		window.draw(fps_text);
 
 		window.display();
 	}
-
-	for (auto player = players.begin(); player != players.end(); player++)
-		delete *player;
 
 	return 0;
 }
