@@ -111,10 +111,13 @@ int main(int argc, char* argv[])
 		float time = clock.getElapsedTime().asSeconds();
 		clock.restart();
 
-		sf::Vector2f pos(0, 0);
+		auto pos = zoom_view.getCenter();
 
 		player.step(time);
 		pos += player.get_sprite_position();
+
+		pos.x = std::round(pos.x / 2);
+		pos.y = std::round(pos.y / 2);
 
 		zoom_view.setCenter(pos.x, pos.y);
 
