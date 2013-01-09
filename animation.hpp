@@ -21,6 +21,8 @@ public:
 	unsigned int loop;
 
 	Animation();
+
+	const Frame& get_frame(float time) const;
 };
 
 namespace YAML

@@ -5,12 +5,18 @@
 #define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
 
 Player::Player(unsigned int joy, bool kbd, const sf::Texture& texture, const std::string& animation_filename, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
- : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), animation(), axis {0, 0}, keys {false, false}
+ : DynamicEntity(l, tvx, tvy, accx, accy, brk), animation(), sprite(texture), shift(), action("idle"), axis {0, 0}, keys {false, false}
 {
 	YAML::Node anim_node = YAML::LoadFile(animation_filename);
 
 	for (auto anim = anim_node.begin(); anim != anim_node.end(); anim++)
 		animation[anim->first.as<std::string>()] = anim->second.as<Animation>();
+
+	flip = 1;
+	animation_timer = 0;
+	auto frame = animation[action].get_frame(0);
+	shift = frame.shift;
+	sprite.setTextureRect(frame.position);
 
 	keyboard = kbd;
 	joystick = joy;
@@ -87,18 +93,24 @@ void Player::jump()
 
 void Player::step(float seconds)
 {
+	animation_timer += seconds;
+
 	auto color = sprite.getColor();
 	sprite.setColor(sf::Color(CLAMP(0, color.r + 200 * seconds, 255), CLAMP(0, color.g + 200 * seconds, 255), CLAMP(0, color.b + 200 * seconds, 255)));
 
 	if (keyboard)
 	{
 		// TODO this is a kinda naive way to handle this
+		action = "run";
 		if (keys[0])
 			impulse[0] = -1;
 		else if (keys[1])
 			impulse[0] = 1;
 		else
+		{
 			impulse[0] = 0;
+			action = "idle";
+		}
 	}
 	else
 	{
@@ -106,9 +118,13 @@ void Player::step(float seconds)
 		{
 			impulse[0] = CLAMP(-80, impulse[0], 80) - 20;
 			impulse[0] = axis[0] / 60;
+			action = "run";
 		}
 		else
+		{
 			impulse[0] = 0;
+			action = "idle";
+		}
 	}
 
 	DynamicEntity::step(seconds);
@@ -124,7 +140,28 @@ void Player::step(float seconds)
 			standing = false;
 	}
 
-	sprite.setPosition(std::round(position[0] * PPB), std::round(position[1] * PPB));
+	if (!standing)
+		action = "jump";
+
+	if (velocity[0] > 0)
+		flip = 1;
+	else if (velocity[0] < 0)
+		flip = -1;
+
+	auto frame = animation[action].get_frame(animation_timer);
+	shift = frame.shift;
+	sprite.setTextureRect(frame.position);
+
+	sprite.setScale(flip, 1);
+	sprite.setPosition(std::round(position[0] * PPB) + shift.x + (flip < 0 ? PPB : 0), std::round(position[1] * PPB) + shift.y);
+}
+
+sf::Vector2f Player::get_sprite_position() const
+{
+	sf::Vector2f pos = sprite.getPosition();
+	pos.x += flip < 0 ? -PPB : 0;
+
+	return pos;
 }
 
 void Player::damage()
