@@ -15,7 +15,7 @@ source.each do |f|
 end
 
 file $bin => objects do
-	sh "#$cc #{objects} -o #$bin -lsfml-graphics -lsfml-window -lsfml-system"
+	sh "#$cc #{objects} -o #$bin -lyaml-cpp -lsfml-graphics -lsfml-window -lsfml-system"
 end
 
 CLEAN.include('*.o', $bin)

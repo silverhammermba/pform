@@ -4,9 +4,14 @@
 #define CLAMP(l, x, u) ((x) < (l) ? (l) : ((x) > (u) ? (u) : (x)))
 #define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
 
-Player::Player(unsigned int joy, bool kbd, const sf::Texture& texture, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
- : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), axis {0, 0}, keys {false, false}
+Player::Player(unsigned int joy, bool kbd, const sf::Texture& texture, const std::string& animation_filename, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
+ : DynamicEntity(l, tvx, tvy, accx, accy, brk), sprite(texture), animation(), axis {0, 0}, keys {false, false}
 {
+	YAML::Node anim_node = YAML::LoadFile(animation_filename);
+
+	for (auto anim = anim_node.begin(); anim != anim_node.end(); anim++)
+		animation[anim->first.as<std::string>()] = anim->second.as<Animation>();
+
 	keyboard = kbd;
 	joystick = joy;
 	jump_speed = j;
