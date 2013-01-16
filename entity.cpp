@@ -18,8 +18,8 @@ Pform::StaticEntity::StaticEntity(bool s)
 }
 
 // TODO make all of this PPB-independet?
-Pform::DynamicEntity::DynamicEntity(const Level& l, double tvx, double tvy, double accx, double accy, double brk)
-	: delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), impulse {0, 0}, velocity {0, 0}
+Pform::DynamicEntity::DynamicEntity(const Level& l, double w, double h, double tvx, double tvy, double accx, double accy, double brk)
+	: size {w, h}, delta {0, 0}, terminal {tvx, tvy}, acceleration {accx, accy}, lower_limit(), upper_limit(), impulse {0, 0}, velocity {0, 0}
 {
 	level = &l;
 	breaking = brk;
@@ -45,8 +45,8 @@ void Pform::DynamicEntity::update_relevant_region()
 {
 	lower_limit[0] = std::floor(position[0]);
 	lower_limit[1] = std::floor(position[1]);
-	upper_limit[0] = std::ceil (position[0]);
-	upper_limit[1] = std::ceil (position[1]);
+	upper_limit[0] = std::ceil (position[0] + size[0] - 1.0);
+	upper_limit[1] = std::ceil (position[1] + size[1] - 1.0);
 
 	/*
 	if (!(level->is_passable(lower_limit[0], lower_limit[1]) && level->is_passable(lower_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], upper_limit[1]) && level->is_passable(upper_limit[0], lower_limit[1])))
@@ -91,9 +91,9 @@ void Pform::DynamicEntity::resolve_movement()
 	 */
 
 	// shift amount to get leading corner
-	unsigned int corner[2] = {
-		(unsigned int)(delta[0] > 0 ? 1 : 0),
-		(unsigned int)(delta[1] > 0 ? 1 : 0)
+	double corner[2] = {
+		(delta[0] > 0 ? size[0] : 0),
+		(delta[1] > 0 ? size[1] : 0)
 	};
 
 	// multiplier to account for negative movement
@@ -106,9 +106,9 @@ void Pform::DynamicEntity::resolve_movement()
 	{
 		if (delta[i] != 0)
 		{
-			int lower = (get_limit(multiplier[i], i) + corner[i]) * multiplier[i];
-			double upper = (position[i] + delta[i] + corner[i]) * multiplier[i];
-			for (int c = lower; c < upper; c ++)
+			int lower = (get_limit(multiplier[i], i) + (delta[i] > 0 ? 1 : 0)) * multiplier[i];
+			double upper = (position[i] + corner[i] + delta[i]) * multiplier[i];
+			for (int c = lower; c < upper; c++)
 			{
 				std::array<double, 2> cross;
 				cross[i] = c * multiplier[i]; // remove multiplier
@@ -215,10 +215,11 @@ void Pform::DynamicEntity::resolve_movement()
 			}
 			// ledge climbing
 			// TODO how well does fmod actually work here?
-			if (impulse[0] != 0 && std::fmod(position[0], 1.f) == 0 && level->is_passable(get_limit(1, 0) + impulse[0], get_limit(1, 1)))
+			if (((impulse[0] < 0 && std::fmod(position[0], 1) == 0) || (impulse[0] > 0 && std::fmod(position[0] + size[0], 1) == 0)) && level->is_passable(get_limit(1, 0) + impulse[0], get_limit(1, 1)))
 			{
-				// TODO this causes some kind of infinite recursion
-				position[0] += impulse[0] * 0.01f;
+				// TODO I don't think this works with variable player size
+				// TODO this causes some kind of infinite recursion?
+				position[0] += impulse[0] * 0.001f;
 				collision = true;
 			}
 		}

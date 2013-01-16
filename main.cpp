@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 	sf::Color background(23, 36, 76);
 
 	std::vector<InputReader*> input_readers;
-	Player player(0, false, zero_texture, "zero_anim.yaml", 16, level, 5, 20, 20, 50, 40);
+	Player player(0, false, zero_texture, "zero_anim.yaml", 16, level, 0.5, 0.8, 4.25, 20, 20, 50, 40);
 
 	Game game(&window);
 

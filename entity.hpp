@@ -20,6 +20,7 @@ namespace Pform
 			X, Y, Corner
 		};
 
+		double size[2];
 		double delta[2]; // amount left to move
 		double terminal[2]; // terminal velocities
 		double acceleration[2]; // from movement and gravity
@@ -40,7 +41,7 @@ namespace Pform
 	public:
 		double velocity[2];
 
-		DynamicEntity(const Level& l, double tvx, double tvy, double accx, double accy, double brk);
+		DynamicEntity(const Level& l, double w, double h, double tvx, double tvy, double accx, double accy, double brk);
 
 		void set_position(unsigned int x, unsigned int y);
 		const double* get_position() const { return position; }

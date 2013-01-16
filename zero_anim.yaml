@@ -2,22 +2,27 @@ idle:
     frames:
         - 
             pos: [0, 0, 32, 32]
+            shift: [-8, -6]
 run:
     frames:
         - 
             pos: [32, 0, 32, 32]
+            shift: [-8, -6]
             dur: 0.2
         - 
             pos: [64, 0, 32, 32]
+            shift: [-8, -6]
             dur: 0.2
         - 
             pos: [96, 0, 32, 32]
+            shift: [-8, -6]
             dur: 0.2
         - 
             pos: [128, 0, 32, 32]
+            shift: [-8, -6]
             dur: 0.2
 jump:
     frames:
         - 
             pos: [0, 192, 32, 64]
-            shift: [0, -13]
+            shift: [-8, -13]

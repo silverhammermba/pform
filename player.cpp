@@ -4,8 +4,8 @@
 #define CLAMP(l, x, u) ((x) < (l) ? (l) : ((x) > (u) ? (u) : (x)))
 #define SIGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
 
-Player::Player(unsigned int joy, bool kbd, const sf::Texture& texture, const std::string& animation_filename, double j, World& l, double tvx, double tvy, double accx, double accy, double brk)
- : DynamicEntity(l, tvx, tvy, accx, accy, brk), animation(), sprite(texture), shift(), action("idle"), axis {0, 0}, keys {false, false}
+Player::Player(unsigned int joy, bool kbd, const sf::Texture& texture, const std::string& animation_filename, double j, World& l, double w, double h, double tvx, double tvy, double accx, double accy, double brk)
+ : DynamicEntity(l, w, h, tvx, tvy, accx, accy, brk), animation(), sprite(texture), shift(), action("idle"), axis {0, 0}, keys {false, false}
 {
 	YAML::Node anim_node = YAML::LoadFile(animation_filename);
 

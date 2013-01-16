@@ -72,6 +72,7 @@ namespace YAML
 	template<> struct convert<Animation> {
 		static bool decode(const Node& node, Animation& anim)
 		{
+			// TODO be able to set shift for all frames at once
 			if (!node["frames"])
 			{
 				throw std::runtime_error("No frame data");
