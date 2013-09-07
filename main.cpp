@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
 	// set up text
 	sf::Font font;
-	font.loadFromFile("/usr/share/fonts/TTF/VeraMono.ttf");
+	font.loadFromFile("font.ttf");
 
 	std::stringstream fps_string;
 
