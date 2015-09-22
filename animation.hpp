@@ -30,7 +30,7 @@ namespace YAML
 	template<> struct convert<sf::IntRect> {
 		static bool decode(const Node& node, sf::IntRect& rect)
 		{
-			if (!node.IsSequence() || !node.size() == 4)
+			if (!node.IsSequence() || node.size() != 4)
 				return false;
 
 			rect.left   = node[0].as<int>();
@@ -45,7 +45,7 @@ namespace YAML
 	template<> struct convert<sf::Vector2i> {
 		static bool decode(const Node& node, sf::Vector2i& vec)
 		{
-			if (!node.IsSequence() || !node.size() == 2)
+			if (!node.IsSequence() || node.size() != 2)
 				return false;
 
 			vec.x = node[0].as<int>();
